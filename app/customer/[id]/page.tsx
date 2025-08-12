@@ -8,55 +8,55 @@ import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
 import { use } from "react"
 
-// °í°´ ´õ¹Ì µ¥ÀÌÅÍ (½ÇÁ¦·Î´Â API¿¡¼­ °¡Á®¿Ã µ¥ÀÌÅÍ)
+// ê³ ê° ë”ë¯¸ ë°ì´í„° (ì‹¤ì œë¡œëŠ” APIì—ì„œ ê°€ì ¸ì˜¬ ë°ì´í„°)
 const customers = [
     {
         id: 1,
-        name: "±è¹Î¼ö",
+        name: "ê¹€ë¯¼ìˆ˜",
         phone: "010-1234-5678",
         visitCount: 12,
-        memo: "VIP °í°´, Á¤±â ¹æ¹®À» ¼±È£ÇÏ¸ç Ç×»ó ¿¹ÀÇ¹Ù¸£°í Ä£ÀıÇÔ. Æ¯º°ÇÑ ¿äÃ»»çÇ×ÀÌ ÀÖÀ» ¶§´Â ¹Ì¸® ¿¬¶ôÀ» ÁÖ½Ã´Â Æí.",
+        memo: "VIP ê³ ê°, ì •ê¸° ë°©ë¬¸ì„ ì„ í˜¸í•˜ë©° í•­ìƒ ì˜ˆì˜ë°”ë¥´ê³  ì¹œì ˆí•¨. íŠ¹ë³„í•œ ìš”ì²­ì‚¬í•­ì´ ìˆì„ ë•ŒëŠ” ë¯¸ë¦¬ ì—°ë½ì„ ì£¼ì‹œëŠ” í¸.",
         lastVisit: "2024-01-25",
-        tags: ["VIP", "Á¤±â°í°´", "ÃßÃµÀÎ"],
+        tags: ["VIP", "ì •ê¸°ê³ ê°", "ì¶”ì²œì¸"],
         joinDate: "2023-03-15",
         totalSpent: 480000,
-        favoriteService: "ÇÁ¸®¹Ì¾ö ÄÉ¾î",
+        favoriteService: "í”„ë¦¬ë¯¸ì—„ ì¼€ì–´",
         visitHistory: [
-            { date: "2024-01-25", service: "ÇÁ¸®¹Ì¾ö ÄÉ¾î", amount: 45000, satisfaction: 5 },
-            { date: "2024-01-10", service: "±âº» ÄÉ¾î", amount: 35000, satisfaction: 5 },
-            { date: "2023-12-28", service: "ÇÁ¸®¹Ì¾ö ÄÉ¾î", amount: 45000, satisfaction: 4 },
-            { date: "2023-12-15", service: "½ºÆä¼È ÄÉ¾î", amount: 55000, satisfaction: 5 },
+            { date: "2024-01-25", service: "í”„ë¦¬ë¯¸ì—„ ì¼€ì–´", amount: 45000, satisfaction: 5 },
+            { date: "2024-01-10", service: "ê¸°ë³¸ ì¼€ì–´", amount: 35000, satisfaction: 5 },
+            { date: "2023-12-28", service: "í”„ë¦¬ë¯¸ì—„ ì¼€ì–´", amount: 45000, satisfaction: 4 },
+            { date: "2023-12-15", service: "ìŠ¤í˜ì…œ ì¼€ì–´", amount: 55000, satisfaction: 5 },
         ],
-        preferences: ["¿ÀÈÄ ½Ã°£´ë ¼±È£", "Á¶¿ëÇÑ È¯°æ", "µû¶æÇÑ Â÷ ¼±È£"],
+        preferences: ["ì˜¤í›„ ì‹œê°„ëŒ€ ì„ í˜¸", "ì¡°ìš©í•œ í™˜ê²½", "ë”°ëœ»í•œ ì°¨ ì„ í˜¸"],
         notes: [
-            { date: "2024-01-25", note: "´ÙÀ½ ¹æ¹® ½Ã »õ·Î¿î ¼­ºñ½º ÃßÃµ ¿¹Á¤" },
-            { date: "2024-01-10", note: "¸¸Á·µµ°¡ ¸Å¿ì ³ôÀ½, ÁöÀÎ ÃßÃµ ÀÇ»ç ÀÖÀ½" },
-            { date: "2023-12-28", note: "¿¬¸» ¼±¹°·Î Ãß°¡ ¼­ºñ½º ÀÌ¿ë" },
+            { date: "2024-01-25", note: "ë‹¤ìŒ ë°©ë¬¸ ì‹œ ìƒˆë¡œìš´ ì„œë¹„ìŠ¤ ì¶”ì²œ ì˜ˆì •" },
+            { date: "2024-01-10", note: "ë§Œì¡±ë„ê°€ ë§¤ìš° ë†’ìŒ, ì§€ì¸ ì¶”ì²œ ì˜ì‚¬ ìˆìŒ" },
+            { date: "2023-12-28", note: "ì—°ë§ ì„ ë¬¼ë¡œ ì¶”ê°€ ì„œë¹„ìŠ¤ ì´ìš©" },
         ],
     },
     {
         id: 2,
-        name: "ÀÌ¿µÈñ",
+        name: "ì´ì˜í¬",
         phone: "010-2345-6789",
         visitCount: 8,
-        memo: "¾Ë·¹¸£±â ÁÖÀÇ - Æ¯Á¤ Á¦Ç° »ç¿ë ±İÁö. ¹Î°¨ÇÑ ÇÇºÎ¸¦ °¡Áö°í ÀÖ¾î Ç×»ó ÆĞÄ¡ Å×½ºÆ® ÈÄ ÁøÇà.",
+        memo: "ì•Œë ˆë¥´ê¸° ì£¼ì˜ - íŠ¹ì • ì œí’ˆ ì‚¬ìš© ê¸ˆì§€. ë¯¼ê°í•œ í”¼ë¶€ë¥¼ ê°€ì§€ê³  ìˆì–´ í•­ìƒ íŒ¨ì¹˜ í…ŒìŠ¤íŠ¸ í›„ ì§„í–‰.",
         lastVisit: "2024-01-22",
-        tags: ["¾Ë·¹¸£±â", "ÁÖÀÇ°í°´"],
+        tags: ["ì•Œë ˆë¥´ê¸°", "ì£¼ì˜ê³ ê°"],
         joinDate: "2023-06-20",
         totalSpent: 320000,
-        favoriteService: "±âº» ÄÉ¾î",
+        favoriteService: "ê¸°ë³¸ ì¼€ì–´",
         visitHistory: [
-            { date: "2024-01-22", service: "±âº» ÄÉ¾î", amount: 35000, satisfaction: 4 },
-            { date: "2024-01-05", service: "±âº» ÄÉ¾î", amount: 35000, satisfaction: 4 },
-            { date: "2023-12-20", service: "±âº» ÄÉ¾î", amount: 35000, satisfaction: 5 },
+            { date: "2024-01-22", service: "ê¸°ë³¸ ì¼€ì–´", amount: 35000, satisfaction: 4 },
+            { date: "2024-01-05", service: "ê¸°ë³¸ ì¼€ì–´", amount: 35000, satisfaction: 4 },
+            { date: "2023-12-20", service: "ê¸°ë³¸ ì¼€ì–´", amount: 35000, satisfaction: 5 },
         ],
-        preferences: ["ÀÚ¿¬ ¼ººĞ Á¦Ç°", "ÆĞÄ¡ Å×½ºÆ® ÇÊ¼ö", "¿ÀÀü ½Ã°£´ë"],
+        preferences: ["ìì—° ì„±ë¶„ ì œí’ˆ", "íŒ¨ì¹˜ í…ŒìŠ¤íŠ¸ í•„ìˆ˜", "ì˜¤ì „ ì‹œê°„ëŒ€"],
         notes: [
-            { date: "2024-01-22", note: "»õ·Î¿î ÀÚ¿¬ ¼ººĞ Á¦Ç° ¸¸Á·µµ ³ôÀ½" },
-            { date: "2024-01-05", note: "¾Ë·¹¸£±â ¹İÀÀ ¾øÀ½, ¾ÈÀüÇÏ°Ô ÁøÇà" },
+            { date: "2024-01-22", note: "ìƒˆë¡œìš´ ìì—° ì„±ë¶„ ì œí’ˆ ë§Œì¡±ë„ ë†’ìŒ" },
+            { date: "2024-01-05", note: "ì•Œë ˆë¥´ê¸° ë°˜ì‘ ì—†ìŒ, ì•ˆì „í•˜ê²Œ ì§„í–‰" },
         ],
     },
-    // ´Ù¸¥ °í°´µéµµ ºñ½ÁÇÏ°Ô Ãß°¡...
+    // ë‹¤ë¥¸ ê³ ê°ë“¤ë„ ë¹„ìŠ·í•˜ê²Œ ì¶”ê°€...
 ]
 
 interface CustomerDetailProps {
@@ -71,9 +71,9 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-orange-50 via-rose-50 to-pink-50 flex items-center justify-center">
                 <Card className="bg-white/80 backdrop-blur-sm p-8">
-                    <p className="text-gray-600">°í°´À» Ã£À» ¼ö ¾ø½À´Ï´Ù.</p>
+                    <p className="text-gray-600">ê³ ê°ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.</p>
                     <Link href="/">
-                        <Button className="mt-4 bg-gradient-to-r from-rose-500 to-pink-500">µ¹¾Æ°¡±â</Button>
+                        <Button className="mt-4 bg-gradient-to-r from-rose-500 to-pink-500">ëŒì•„ê°€ê¸°</Button>
                     </Link>
                 </Card>
             </div>
@@ -91,7 +91,7 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
                     <Link href="/">
                         <Button variant="outline" className="mb-4 border-rose-200 hover:bg-rose-50 bg-transparent">
                             <ArrowLeft className="h-4 w-4 mr-2" />
-                            °í°´ ¸ñ·ÏÀ¸·Î µ¹¾Æ°¡±â
+                            ê³ ê° ëª©ë¡ìœ¼ë¡œ ëŒì•„ê°€ê¸°
                         </Button>
                     </Link>
 
@@ -101,19 +101,19 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
                         </div>
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900">{customer.name}</h1>
-                            <p className="text-gray-600">°í°´ »ó¼¼ Á¤º¸</p>
+                            <p className="text-gray-600">ê³ ê° ìƒì„¸ ì •ë³´</p>
                         </div>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* ±âº» Á¤º¸ */}
+                    {/* ê¸°ë³¸ ì •ë³´ */}
                     <div className="lg:col-span-1 space-y-6">
                         <Card className="bg-white/80 backdrop-blur-sm shadow-lg border-0">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <Heart className="h-5 w-5 text-rose-500" />
-                                    ±âº» Á¤º¸
+                                    ê¸°ë³¸ ì •ë³´
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -125,7 +125,7 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
                                 <div className="flex items-center gap-3">
                                     <Calendar className="h-4 w-4 text-gray-500" />
                                     <div>
-                                        <p className="text-sm text-gray-500">°¡ÀÔÀÏ</p>
+                                        <p className="text-sm text-gray-500">ê°€ì…ì¼</p>
                                         <p className="text-gray-700">{customer.joinDate}</p>
                                     </div>
                                 </div>
@@ -133,7 +133,7 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
                                 <div className="flex items-center gap-3">
                                     <Clock className="h-4 w-4 text-gray-500" />
                                     <div>
-                                        <p className="text-sm text-gray-500">ÃÖ±Ù ¹æ¹®</p>
+                                        <p className="text-sm text-gray-500">ìµœê·¼ ë°©ë¬¸</p>
                                         <p className="text-gray-700">{customer.lastVisit}</p>
                                     </div>
                                 </div>
@@ -141,7 +141,7 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
                                 <Separator />
 
                                 <div className="space-y-2">
-                                    <p className="text-sm font-medium text-gray-700">°í°´ ÅÂ±×</p>
+                                    <p className="text-sm font-medium text-gray-700">ê³ ê° íƒœê·¸</p>
                                     <div className="flex flex-wrap gap-2">
                                         {customer.tags.map((tag, index) => (
                                             <Badge key={index} className="bg-rose-100 text-rose-800 hover:bg-rose-200">
@@ -154,33 +154,33 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
                             </CardContent>
                         </Card>
 
-                        {/* Åë°è Á¤º¸ */}
+                        {/* í†µê³„ ì •ë³´ */}
                         <Card className="bg-white/80 backdrop-blur-sm shadow-lg border-0">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <TrendingUp className="h-5 w-5 text-amber-500" />
-                                    Åë°è Á¤º¸
+                                    í†µê³„ ì •ë³´
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="text-center p-3 bg-gradient-to-r from-rose-50 to-pink-50 rounded-lg">
                                         <p className="text-2xl font-bold text-rose-600">{customer.visitCount}</p>
-                                        <p className="text-xs text-gray-600">ÃÑ ¹æ¹® È½¼ö</p>
+                                        <p className="text-xs text-gray-600">ì´ ë°©ë¬¸ íšŸìˆ˜</p>
                                     </div>
                                     <div className="text-center p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg">
                                         <p className="text-2xl font-bold text-amber-600">{averageSatisfaction.toFixed(1)}</p>
-                                        <p className="text-xs text-gray-600">Æò±Õ ¸¸Á·µµ</p>
+                                        <p className="text-xs text-gray-600">í‰ê·  ë§Œì¡±ë„</p>
                                     </div>
                                 </div>
 
                                 <div className="text-center p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg">
                                     <p className="text-xl font-bold text-emerald-600">?{customer.totalSpent.toLocaleString()}</p>
-                                    <p className="text-xs text-gray-600">ÃÑ ÀÌ¿ë ±İ¾×</p>
+                                    <p className="text-xs text-gray-600">ì´ ì´ìš© ê¸ˆì•¡</p>
                                 </div>
 
                                 <div>
-                                    <p className="text-sm font-medium text-gray-700 mb-2">¼±È£ ¼­ºñ½º</p>
+                                    <p className="text-sm font-medium text-gray-700 mb-2">ì„ í˜¸ ì„œë¹„ìŠ¤</p>
                                     <Badge className="bg-purple-100 text-purple-800">
                                         <Gift className="h-3 w-3 mr-1" />
                                         {customer.favoriteService}
@@ -190,14 +190,14 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
                         </Card>
                     </div>
 
-                    {/* »ó¼¼ Á¤º¸ */}
+                    {/* ìƒì„¸ ì •ë³´ */}
                     <div className="lg:col-span-2 space-y-6">
-                        {/* ¸Ş¸ğ */}
+                        {/* ë©”ëª¨ */}
                         <Card className="bg-white/80 backdrop-blur-sm shadow-lg border-0">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <FileText className="h-5 w-5 text-blue-500" />
-                                    °í°´ ¸Ş¸ğ
+                                    ê³ ê° ë©”ëª¨
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -205,12 +205,12 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
                             </CardContent>
                         </Card>
 
-                        {/* ¹æ¹® ÀÌ·Â */}
+                        {/* ë°©ë¬¸ ì´ë ¥ */}
                         <Card className="bg-white/80 backdrop-blur-sm shadow-lg border-0">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <Calendar className="h-5 w-5 text-green-500" />
-                                    ÃÖ±Ù ¹æ¹® ÀÌ·Â
+                                    ìµœê·¼ ë°©ë¬¸ ì´ë ¥
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -243,12 +243,12 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
                             </CardContent>
                         </Card>
 
-                        {/* °í°´ ¼±È£»çÇ× */}
+                        {/* ê³ ê° ì„ í˜¸ì‚¬í•­ */}
                         <Card className="bg-white/80 backdrop-blur-sm shadow-lg border-0">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <Heart className="h-5 w-5 text-pink-500" />
-                                    °í°´ ¼±È£»çÇ×
+                                    ê³ ê° ì„ í˜¸ì‚¬í•­
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -263,12 +263,12 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
                             </CardContent>
                         </Card>
 
-                        {/* »ó´ã ³ëÆ® */}
+                        {/* ìƒë‹´ ë…¸íŠ¸ */}
                         <Card className="bg-white/80 backdrop-blur-sm shadow-lg border-0">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <FileText className="h-5 w-5 text-indigo-500" />
-                                    »ó´ã ³ëÆ®
+                                    ìƒë‹´ ë…¸íŠ¸
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
