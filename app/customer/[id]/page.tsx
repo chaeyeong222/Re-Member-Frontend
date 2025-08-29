@@ -17,217 +17,115 @@ import {
     Plus,
 } from "lucide-react"
 import Link from "next/link"
-import { use, useState } from "react"
+import { use, useState, useEffect } from "react"
 
-// 고객 데이터 (실제로는 API에서 가져올 데이터)
-const customersData = [
-    {
-        id: 1,
-        name: "김민수",
-        phone: "010-1234-5678",
-        visitCount: 12,
-        memo: "VIP 고객, 정기 방문을 선호하며 항상 예의바르고 친절함. 특별한 요청사항이 있을 때는 미리 연락을 주시는 편.",
-        lastVisit: "2024-01-25",
-        tags: ["VIP", "정기고객", "추천인"],
-        joinDate: "2023-03-15",
-        totalSpent: 480000,
-        favoriteService: "프리미엄 케어",
-        visitHistory: [
-            {
-                id: 1,
-                date: "2024-01-25",
-                service: "프리미엄 케어",
-                amount: 45000,
-                satisfaction: 5,
-                memo: "고객이 매우 만족해하셨음. 다음에도 같은 스타일 요청",
-                staff: "김미용사",
-            },
-            {
-                id: 2,
-                date: "2024-01-10",
-                service: "기본 케어",
-                amount: 35000,
-                satisfaction: 5,
-                memo: "평소보다 조금 더 짧게 해달라고 요청하셨음",
-                staff: "이미용사",
-            },
-            {
-                id: 3,
-                date: "2023-12-28",
-                service: "프리미엄 케어",
-                amount: 45000,
-                satisfaction: 4,
-                memo: "연말 모임 준비로 특별 스타일링 요청",
-                staff: "김미용사",
-            },
-            {
-                id: 4,
-                date: "2023-12-15",
-                service: "스페셜 케어",
-                amount: 55000,
-                satisfaction: 5,
-                memo: "새로운 스타일에 도전해보고 싶다고 하셨음",
-                staff: "박미용사",
-            },
-        ],
-        preferences: ["오후 시간대 선호", "조용한 환경", "따뜻한 차 선호"],
-        detailedMemos: [
-            {
-                id: 1,
-                date: "2024-01-25",
-                content: "다음 방문 시 새로운 서비스 추천 예정. 고객이 최근 트렌드에 관심이 많으시다고 하셨음.",
-                category: "서비스",
-            },
-            {
-                id: 2,
-                date: "2024-01-10",
-                content: "만족도가 매우 높음, 지인 추천 의사 있음. 친구분께 명함을 드렸음.",
-                category: "추천",
-            },
-            {
-                id: 3,
-                date: "2023-12-28",
-                content: "연말 선물로 추가 서비스 이용. 가족분들께도 추천해주시겠다고 하셨음.",
-                category: "이벤트",
-            },
-        ],
-    },
-    {
-        id: 2,
-        name: "이영희",
-        phone: "010-2345-6789",
-        visitCount: 8,
-        memo: "알레르기 주의 - 특정 제품 사용 금지. 민감한 피부를 가지고 있어 항상 패치 테스트 후 진행.",
-        lastVisit: "2024-01-22",
-        tags: ["알레르기", "주의고객"],
-        joinDate: "2023-06-20",
-        totalSpent: 320000,
-        favoriteService: "기본 케어",
-        visitHistory: [
-            {
-                id: 1,
-                date: "2024-01-22",
-                service: "기본 케어",
-                amount: 35000,
-                satisfaction: 4,
-                memo: "새로운 자연 성분 제품 사용, 알레르기 반응 없음",
-                staff: "이미용사",
-            },
-            {
-                id: 2,
-                date: "2024-01-05",
-                service: "기본 케어",
-                amount: 35000,
-                satisfaction: 4,
-                memo: "패치 테스트 후 진행, 안전하게 완료",
-                staff: "이미용사",
-            },
-            {
-                id: 3,
-                date: "2023-12-20",
-                service: "기본 케어",
-                amount: 35000,
-                satisfaction: 5,
-                memo: "평소 사용하던 제품으로 진행, 매우 만족",
-                staff: "김미용사",
-            },
-        ],
-        preferences: ["자연 성분 제품", "패치 테스트 필수", "오전 시간대"],
-        detailedMemos: [
-            {
-                id: 1,
-                date: "2024-01-22",
-                content: "새로운 자연 성분 제품 만족도 높음. 앞으로 이 제품 라인 사용 예정.",
-                category: "제품",
-            },
-            {
-                id: 2,
-                date: "2024-01-05",
-                content: "알레르기 반응 없음, 안전하게 진행. 고객이 안심하고 서비스 받으셨음.",
-                category: "건강",
-            },
-        ],
-    },
-    {
-        id: 3,
-        name: "박철수",
-        phone: "010-3456-7890",
-        visitCount: 15,
-        memo: "단골 고객, 항상 만족도 높음. 예약 시간을 잘 지키시고 직원들에게도 친절하심.",
-        lastVisit: "2024-01-28",
-        tags: ["단골", "만족고객", "추천인"],
-        joinDate: "2022-11-10",
-        totalSpent: 750000,
-        favoriteService: "스페셜 케어",
-        visitHistory: [
-            {
-                id: 1,
-                date: "2024-01-28",
-                service: "스페셜 케어",
-                amount: 55000,
-                satisfaction: 5,
-                memo: "새해 첫 방문, 올해도 잘 부탁한다고 하셨음",
-                staff: "박미용사",
-            },
-            {
-                id: 2,
-                date: "2024-01-14",
-                service: "프리미엄 케어",
-                amount: 45000,
-                satisfaction: 5,
-                memo: "정기 방문, 항상 만족해하심",
-                staff: "김미용사",
-            },
-            {
-                id: 3,
-                date: "2023-12-30",
-                service: "스페셜 케어",
-                amount: 55000,
-                satisfaction: 4,
-                memo: "연말 모임 준비, 평소보다 더 신경써달라고 요청",
-                staff: "박미용사",
-            },
-        ],
-        preferences: ["정기 예약", "같은 스타일 유지", "오후 3시 선호"],
-        detailedMemos: [
-            {
-                id: 1,
-                date: "2024-01-28",
-                content: "올해도 정기적으로 방문하겠다고 하셨음. 매월 둘째, 넷째 주 예약 선호.",
-                category: "예약",
-            },
-            {
-                id: 2,
-                date: "2024-01-14",
-                content: "지인분께 저희 샵을 추천해주셨음. 감사 인사 전달.",
-                category: "추천",
-            },
-        ],
-    },
-]
+// 고객 데이터 타입 정의
+interface Customer {
+    id: number
+    name: string
+    phone: string
+    visitCount: number
+    memo: string
+    lastVisit: string
+    tags: string[]
+    joinDate: string
+    totalSpent: number
+    favoriteService: string
+    visitHistory: VisitHistory[]
+    preferences: string[]
+    detailedMemos: DetailedMemo[]
+}
+
+interface VisitHistory {
+    id: number
+    date: string
+    service: string
+    amount: number
+    satisfaction: number
+    memo: string
+    staff: string
+}
+
+interface DetailedMemo {
+    id: number
+    date: string
+    content: string
+    category: string
+}
 
 interface CustomerDetailProps {
-    params: Promise<{ id: string }>
+    params: { id: string }
+}
+
+// API에서 고객 데이터를 가져오는 함수
+const fetchCustomer = async (id: string): Promise<Customer | null> => {
+    try {
+        const response = await fetch(`http://localhost:8090/customer/${id}/userHistory`)
+        if (!response.ok) {
+            if (response.status === 404) {
+                console.error("고객을 찾을 수 없습니다.")
+                return null
+            }
+            throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const data: Customer = await response.json()
+        return data
+    } catch (error) {
+        console.error("고객 데이터 불러오기 실패:", error)
+        return null
+    }
 }
 
 export default function CustomerDetail({ params }: CustomerDetailProps) {
-    const { id } = use(params)
-    const [customer, setCustomer] = useState(customersData.find((c) => c.id === Number.parseInt(id)))
+    const { id } = params
+    const [customer, setCustomer] = useState<Customer | null>(null)
+    const [isLoading, setIsLoading] = useState(true)
+
+    // 메모 수정 관련 상태
     const [isEditingMemo, setIsEditingMemo] = useState(false)
-    const [editedMemo, setEditedMemo] = useState(customer?.memo || "")
+    const [editedMemo, setEditedMemo] = useState("")
+
+    // 태그 추가/삭제 관련 상태
     const [newTag, setNewTag] = useState("")
     const [isAddingTag, setIsAddingTag] = useState(false)
+
+    // 상세 메모 수정 관련 상태
     const [editingMemoId, setEditingMemoId] = useState<number | null>(null)
     const [editingMemoContent, setEditingMemoContent] = useState("")
+
+    // 컴포넌트 마운트 시 데이터 불러오기
+    useEffect(() => {
+        const getCustomerData = async () => {
+            setIsLoading(true)
+            const data = await fetchCustomer(id)
+            setCustomer(data)
+            setEditedMemo(data?.memo || "") // 메모 상태 초기화
+            setIsLoading(false)
+        }
+        getCustomerData()
+    }, [id])
+
+    // 고객 데이터가 없을 경우
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-orange-50 via-rose-50 to-pink-50 flex items-center justify-center p-4">
+                <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                    <span className="ml-4 text-gray-600">데이터를 불러오는 중...</span>
+                </div>
+            </div>
+        )
+    }
 
     if (!customer) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-orange-50 via-rose-50 to-pink-50 flex items-center justify-center p-4">
-                <div className="bg-white/80 backdrop-blur-sm p-6 sm:p-8 rounded-lg shadow-lg max-w-md w-full">
-                    <p className="text-gray-600 text-center mb-4">고객을 찾을 수 없습니다.</p>
+                <div className="bg-white/80 backdrop-blur-sm p-6 sm:p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+                    <p className="text-gray-600 mb-4">고객을 찾을 수 없습니다.</p>
                     <Link href="/">
-                        <button className="w-full px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-md">
-                            돌아가기
+                        <button className="w-full px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-md hover:from-rose-600 hover:to-pink-600 transition-colors">
+                            <ArrowLeft className="h-4 w-4 inline mr-2" />
+                            고객 목록으로 돌아가기
                         </button>
                     </Link>
                 </div>
@@ -235,14 +133,18 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
         )
     }
 
+    // 통계 계산
     const averageSatisfaction =
         customer.visitHistory?.reduce((sum, visit) => sum + visit.satisfaction, 0) / (customer.visitHistory?.length || 1)
 
+    // 메모 저장 핸들러
     const handleSaveMemo = () => {
+        // 서버에 저장하는 API 호출 로직 추가 (예: PUT or PATCH)
         setCustomer((prev) => (prev ? { ...prev, memo: editedMemo } : null))
         setIsEditingMemo(false)
     }
 
+    // 태그 추가 핸들러
     const handleAddTag = () => {
         if (newTag.trim() && customer) {
             setCustomer((prev) =>
@@ -258,6 +160,7 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
         }
     }
 
+    // 태그 삭제 핸들러
     const handleRemoveTag = (tagToRemove: string) => {
         setCustomer((prev) =>
             prev
@@ -269,11 +172,13 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
         )
     }
 
+    // 상세 메모 수정 핸들러
     const handleEditDetailedMemo = (memoId: number, content: string) => {
         setEditingMemoId(memoId)
         setEditingMemoContent(content)
     }
 
+    // 상세 메모 저장 핸들러
     const handleSaveDetailedMemo = () => {
         if (customer && editingMemoId) {
             setCustomer((prev) =>
@@ -419,7 +324,9 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
                                             <p className="text-xs text-gray-600">총 방문 횟수</p>
                                         </div>
                                         <div className="text-center p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg">
-                                            <p className="text-xl sm:text-2xl font-bold text-amber-600">{averageSatisfaction.toFixed(1)}</p>
+                                            <p className="text-xl sm:text-2xl font-bold text-amber-600">
+                                                {averageSatisfaction.toFixed(1)}
+                                            </p>
                                             <p className="text-xs text-gray-600">평균 만족도</p>
                                         </div>
                                     </div>
@@ -434,9 +341,9 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
                                     <div>
                                         <p className="text-sm font-medium text-gray-700 mb-2">선호 서비스</p>
                                         <span className="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                      <Gift className="h-3 w-3 mr-1" />
+                                            <Gift className="h-3 w-3 mr-1" />
                                             {customer.favoriteService}
-                    </span>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -466,12 +373,12 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
 
                                 {isEditingMemo ? (
                                     <div className="space-y-3">
-                    <textarea
-                        value={editedMemo}
-                        onChange={(e) => setEditedMemo(e.target.value)}
-                        className="w-full p-3 border border-rose-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400 resize-none"
-                        rows={4}
-                    />
+                                        <textarea
+                                            value={editedMemo}
+                                            onChange={(e) => setEditedMemo(e.target.value)}
+                                            className="w-full p-3 border border-rose-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400 resize-none"
+                                            rows={4}
+                                        />
                                         <div className="flex gap-2">
                                             <button
                                                 onClick={handleSaveMemo}
@@ -503,7 +410,7 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
                                     방문 이력 (최신순)
                                 </h2>
                                 <div className="space-y-3 sm:space-y-4">
-                                    {customer.visitHistory?.map((visit, index) => (
+                                    {customer.visitHistory?.map((visit) => (
                                         <div key={visit.id} className="p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg">
                                             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-0 mb-2">
                                                 <div className="flex-1">
