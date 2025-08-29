@@ -60,7 +60,7 @@ interface CustomerDetailProps {
 // API에서 고객 데이터를 가져오는 함수
 const fetchCustomer = async (id: string): Promise<Customer | null> => {
     try {
-        const response = await fetch(`http://localhost:8090/customer/${id}/userHistory`)
+        const response = await fetch(`http://localhost:8090/customer/${id}/customerHistory`)
         if (!response.ok) {
             if (response.status === 404) {
                 console.error("고객을 찾을 수 없습니다.")
