@@ -61,8 +61,8 @@ export default function KakaoLoginPage() {
                                 <Shield className="h-5 w-5 text-white" />
                             </div>
                             <div>
-                                <h3 className="font-semibold text-gray-900">안전한 보안</h3>
-                                <p className="text-sm text-gray-600">카카오 로그인으로 안전하게</p>
+                                <h3 className="font-semibold text-gray-900">간편 로그인</h3>
+                                <p className="text-sm text-gray-600">이름과 연락처로 간편하게 로그인</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
@@ -70,8 +70,8 @@ export default function KakaoLoginPage() {
                                 <Sparkles className="h-5 w-5 text-white" />
                             </div>
                             <div>
-                                <h3 className="font-semibold text-gray-900">스마트 분석</h3>
-                                <p className="text-sm text-gray-600">고객 데이터 기반 인사이트</p>
+                                <h3 className="font-semibold text-gray-900">스마트 관리</h3>
+                                <p className="text-sm text-gray-600">예약부터 내역관리까지 한번에</p>
                             </div>
                         </div>
                     </div>
