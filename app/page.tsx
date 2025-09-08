@@ -9,6 +9,7 @@ export default function KakaoLoginPage() {
 
     // Check if user is already logged in
     useEffect(() => {
+        // 이 부분은 필요에 따라 백엔드에서 JWT 유효성을 체크하는 로직으로 변경하는 것이 좋습니다.
         const token = localStorage.getItem("kakao_token")
         const storeKey = localStorage.getItem("store_key")
         if (token && storeKey) {
@@ -16,10 +17,11 @@ export default function KakaoLoginPage() {
         }
     }, [router])
 
-    const handleKakaoLogin = async () => {
+    const handleKakaoLogin = () => {
         setIsLoading(true)
 
         try {
+            // 환경변수를 사용하여 콜백 URL을 동적으로 설정
             const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI}&response_type=code`
 
             window.location.href = kakaoAuthUrl
@@ -62,8 +64,7 @@ export default function KakaoLoginPage() {
                             </div>
                             <div>
                                 <h3 className="font-semibold text-gray-900">간편 로그인</h3>
-                                <p className="text-sm text-gray-600">이름과 연락처로 간편하게 로그인</p>
-                            </div>
+                                <p className="text-sm text-gray-600">이름과 연락처로 간편하게 로그인</p></div>
                         </div>
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-purple-500 rounded-lg flex items-center justify-center">
