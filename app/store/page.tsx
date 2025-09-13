@@ -27,11 +27,11 @@ export default function StoreSearchPage() {
     const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
-    const [selectedCategory, setSelectedCategory] = useState("ÀüÃ¼")
+    const [selectedCategory, setSelectedCategory] = useState("ì „ì²´")
     const [stores, setStores] = useState<Store[]>([])
     const router = useRouter()
 
-    const categories = ["ÀüÃ¼", "Ä«Æä", "À½½ÄÁ¡", "¹Ì¿ë½Ç", "º´¿ø", "¼îÇÎ", "±âÅ¸"]
+    const categories = ["ì „ì²´", "ì¹´í˜", "ìŒì‹ì ", "ë¯¸ìš©ì‹¤", "ë³‘ì›", "ì‡¼í•‘", "ê¸°íƒ€"]
 
     useEffect(() => {
         // Check authentication
@@ -57,50 +57,50 @@ export default function StoreSearchPage() {
         setStores([
             {
                 id: 1,
-                name: "Ä«Æä ¸ğÄ«",
-                category: "Ä«Æä",
-                location: "°­³²±¸ ¿ª»ïµ¿",
+                name: "ì¹´í˜ ëª¨ì¹´",
+                category: "ì¹´í˜",
+                location: "ê°•ë‚¨êµ¬ ì—­ì‚¼ë™",
                 rating: 4.5,
                 reviewCount: 128,
                 waitTime: 15,
                 image: "/cozy-cafe-interior.png",
-                description: "¾Æ´ÁÇÑ ºĞÀ§±âÀÇ ½ºÆä¼ÈÆ¼ Ä¿ÇÇ Àü¹®Á¡",
+                description: "ì•„ëŠ‘í•œ ë¶„ìœ„ê¸°ì˜ ìŠ¤í˜ì…œí‹° ì»¤í”¼ ì „ë¬¸ì ",
                 isOpen: true,
             },
             {
                 id: 2,
-                name: "¸ÀÀÖ´Â ÆÄ½ºÅ¸",
-                category: "À½½ÄÁ¡",
-                location: "¼­ÃÊ±¸ ¼­ÃÊµ¿",
+                name: "ë§›ìˆëŠ” íŒŒìŠ¤íƒ€",
+                category: "ìŒì‹ì ",
+                location: "ì„œì´ˆêµ¬ ì„œì´ˆë™",
                 rating: 4.2,
                 reviewCount: 89,
                 waitTime: 25,
                 image: "/italian-restaurant-pasta.png",
-                description: "Á¤Åë ÀÌÅ»¸®¾È ÆÄ½ºÅ¸¿Í ÇÇÀÚ Àü¹®Á¡",
+                description: "ì •í†µ ì´íƒˆë¦¬ì•ˆ íŒŒìŠ¤íƒ€ì™€ í”¼ì ì „ë¬¸ì ",
                 isOpen: true,
             },
             {
                 id: 3,
-                name: "Çì¾î»ì·Õ ºí·ç",
-                category: "¹Ì¿ë½Ç",
-                location: "°­³²±¸ ½Å»çµ¿",
+                name: "í—¤ì–´ì‚´ë¡± ë¸”ë£¨",
+                category: "ë¯¸ìš©ì‹¤",
+                location: "ê°•ë‚¨êµ¬ ì‹ ì‚¬ë™",
                 rating: 4.8,
                 reviewCount: 256,
                 waitTime: 45,
                 image: "/modern-hair-salon.png",
-                description: "Æ®·»µğÇÑ Çì¾î µğÀÚÀÎ Àü¹® »ì·Õ",
+                description: "íŠ¸ë Œë””í•œ í—¤ì–´ ë””ìì¸ ì „ë¬¸ ì‚´ë¡±",
                 isOpen: false,
             },
             {
                 id: 4,
-                name: "½º¸¶ÀÏ Ä¡°ú",
-                category: "º´¿ø",
-                location: "¼­ÃÊ±¸ ¹æ¹èµ¿",
+                name: "ìŠ¤ë§ˆì¼ ì¹˜ê³¼",
+                category: "ë³‘ì›",
+                location: "ì„œì´ˆêµ¬ ë°©ë°°ë™",
                 rating: 4.6,
                 reviewCount: 167,
                 waitTime: 30,
                 image: "/modern-dental-clinic.png",
-                description: "Ã·´Ü Àåºñ¸¦ °®Ãá Ä¡°ú Àü¹® º´¿ø",
+                description: "ì²¨ë‹¨ ì¥ë¹„ë¥¼ ê°–ì¶˜ ì¹˜ê³¼ ì „ë¬¸ ë³‘ì›",
                 isOpen: true,
             },
         ])
@@ -123,7 +123,7 @@ export default function StoreSearchPage() {
         const matchesSearch =
             store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             store.location.toLowerCase().includes(searchQuery.toLowerCase())
-        const matchesCategory = selectedCategory === "ÀüÃ¼" || store.category === selectedCategory
+        const matchesCategory = selectedCategory === "ì „ì²´" || store.category === selectedCategory
         return matchesSearch && matchesCategory
     })
 
@@ -131,7 +131,7 @@ export default function StoreSearchPage() {
         return (
             <div className="min-h-screen bg-gradient-to-br from-orange-50 via-rose-50 to-pink-50 flex items-center justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                <span className="ml-4 text-gray-600">·Îµù Áß...</span>
+                <span className="ml-4 text-gray-600">ë¡œë”© ì¤‘...</span>
             </div>
         )
     }
@@ -154,7 +154,7 @@ export default function StoreSearchPage() {
                                 <h1 className="font-bold text-lg bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
                                     Re:Member
                                 </h1>
-                                <p className="text-xs text-gray-600">°¡°Ô Ã£±â</p>
+                                <p className="text-xs text-gray-600">ê°€ê²Œ ì°¾ê¸°</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
@@ -169,7 +169,7 @@ export default function StoreSearchPage() {
                                 className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
                             >
                                 <LogOut className="h-3 w-3" />
-                                ·Î±×¾Æ¿ô
+                                ë¡œê·¸ì•„ì›ƒ
                             </button>
                         </div>
                     </div>
@@ -185,7 +185,7 @@ export default function StoreSearchPage() {
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="°¡°Ô¸í ¶Ç´Â Áö¿ªÀ¸·Î °Ë»öÇÏ¼¼¿ä"
+                                placeholder="ê°€ê²Œëª… ë˜ëŠ” ì§€ì—­ìœ¼ë¡œ ê²€ìƒ‰í•˜ì„¸ìš”"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
@@ -216,7 +216,7 @@ export default function StoreSearchPage() {
                 <div className="space-y-4">
                     {filteredStores.length === 0 ? (
                         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-8 text-center">
-                            <p className="text-gray-500">°Ë»ö °á°ú°¡ ¾ø½À´Ï´Ù.</p>
+                            <p className="text-gray-500">ê²€ìƒ‰ ê²°ê³¼ê°€ ì—†ìŠµë‹ˆë‹¤.</p>
                         </div>
                     ) : (
                         filteredStores.map((store) => (
@@ -234,7 +234,7 @@ export default function StoreSearchPage() {
                                                     store.isOpen ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                                                 }`}
                                             >
-                                                {store.isOpen ? "¿µ¾÷Áß" : "¿µ¾÷Á¾·á"}
+                                                {store.isOpen ? "ì˜ì—…ì¤‘" : "ì˜ì—…ì¢…ë£Œ"}
                                             </div>
                                         </div>
 
@@ -249,7 +249,7 @@ export default function StoreSearchPage() {
                                             </div>
                                             <div className="flex items-center gap-1">
                                                 <Clock className="h-4 w-4" />
-                                                ´ë±â {store.waitTime}ºĞ
+                                                ëŒ€ê¸° {store.waitTime}ë¶„
                                             </div>
                                         </div>
 
@@ -262,7 +262,7 @@ export default function StoreSearchPage() {
                                                     : "bg-gray-200 text-gray-500 cursor-not-allowed"
                                             }`}
                                         >
-                                            {store.isOpen ? "¿¹¾àÇÏ±â" : "¿µ¾÷Á¾·á"}
+                                            {store.isOpen ? "ì˜ˆì•½í•˜ê¸°" : "ì˜ì—…ì¢…ë£Œ"}
                                         </button>
                                     </div>
                                 </div>
