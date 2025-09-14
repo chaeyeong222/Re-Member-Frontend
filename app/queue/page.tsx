@@ -64,9 +64,9 @@ export default function QueueStatusPage() {
         // Mock store and queue data
         const mockStore: Store = {
             id: Number.parseInt(storeId),
-            name: "Ä«Æä ¸ğÄ«",
-            category: "Ä«Æä",
-            location: "°­³²±¸ ¿ª»ïµ¿ 123-45",
+            name: "ì¹´í˜ ëª¨ì¹´",
+            category: "ì¹´í˜",
+            location: "ê°•ë‚¨êµ¬ ì—­ì‚¼ë™ 123-45",
             phone: "02-1234-5678",
             image: "/cozy-cafe-interior.png",
         }
@@ -118,7 +118,7 @@ export default function QueueStatusPage() {
         // Simulate API call
         await new Promise((resolve) => setTimeout(resolve, 1500))
 
-        alert("´ë±â°¡ Ãë¼ÒµÇ¾ú½À´Ï´Ù.")
+        alert("ëŒ€ê¸°ê°€ ì·¨ì†Œë˜ì—ˆìŠµë‹ˆë‹¤.")
         router.push("/stores")
     }
 
@@ -132,7 +132,7 @@ export default function QueueStatusPage() {
         return (
             <div className="min-h-screen bg-gradient-to-br from-orange-50 via-rose-50 to-pink-50 flex items-center justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                <span className="ml-4 text-gray-600">·Îµù Áß...</span>
+                <span className="ml-4 text-gray-600">ë¡œë”© ì¤‘...</span>
             </div>
         )
     }
@@ -157,7 +157,7 @@ export default function QueueStatusPage() {
                                 <h1 className="font-bold text-lg bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
                                     Re:Member
                                 </h1>
-                                <p className="text-xs text-gray-600">´ë±â ÇöÈ²</p>
+                                <p className="text-xs text-gray-600">ëŒ€ê¸° í˜„í™©</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
@@ -172,7 +172,7 @@ export default function QueueStatusPage() {
                                 className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
                             >
                                 <LogOut className="h-3 w-3" />
-                                ·Î±×¾Æ¿ô
+                                ë¡œê·¸ì•„ì›ƒ
                             </button>
                         </div>
                     </div>
@@ -208,27 +208,27 @@ export default function QueueStatusPage() {
                 {isMyTurn ? (
                     <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl shadow-lg p-8 mb-6 text-white text-center">
                         <CheckCircle className="h-16 w-16 mx-auto mb-4" />
-                        <h3 className="text-2xl font-bold mb-2">ÀÔÀå °¡´ÉÇÕ´Ï´Ù!</h3>
-                        <p className="text-green-100">¸ÅÀåÀ¸·Î ÀÔÀåÇØ ÁÖ¼¼¿ä.</p>
+                        <h3 className="text-2xl font-bold mb-2">ì…ì¥ ê°€ëŠ¥í•©ë‹ˆë‹¤!</h3>
+                        <p className="text-green-100">ë§¤ì¥ìœ¼ë¡œ ì…ì¥í•´ ì£¼ì„¸ìš”.</p>
                     </div>
                 ) : (
                     <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-8 mb-6 text-center">
                         <div className="w-24 h-24 bg-gradient-to-r from-rose-400 to-pink-400 rounded-full flex items-center justify-center mx-auto mb-6">
                             <span className="text-3xl font-bold text-white">{queueInfo.queueNumber}</span>
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">ÇöÀç ´ë±â¼ø¹ø</h3>
-                        <p className="text-gray-600 mb-6">ÃÑ {queueInfo.totalWaiting}¸íÀÌ ´ë±â ÁßÀÔ´Ï´Ù</p>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">í˜„ì¬ ëŒ€ê¸°ìˆœë²ˆ</h3>
+                        <p className="text-gray-600 mb-6">ì´ {queueInfo.totalWaiting}ëª…ì´ ëŒ€ê¸° ì¤‘ì…ë‹ˆë‹¤</p>
 
                         <div className="grid grid-cols-2 gap-4 mb-6">
                             <div className="bg-rose-50 rounded-xl p-4">
                                 <Clock className="h-6 w-6 text-rose-500 mx-auto mb-2" />
-                                <p className="text-sm text-gray-600">¿¹»ó ´ë±â½Ã°£</p>
-                                <p className="text-xl font-bold text-rose-600">{queueInfo.estimatedWaitTime}ºĞ</p>
+                                <p className="text-sm text-gray-600">ì˜ˆìƒ ëŒ€ê¸°ì‹œê°„</p>
+                                <p className="text-xl font-bold text-rose-600">{queueInfo.estimatedWaitTime}ë¶„</p>
                             </div>
                             <div className="bg-blue-50 rounded-xl p-4">
                                 <Users className="h-6 w-6 text-blue-500 mx-auto mb-2" />
-                                <p className="text-sm text-gray-600">ÇöÀç ¼­ºù ¹øÈ£</p>
-                                <p className="text-xl font-bold text-blue-600">{queueInfo.currentServing}¹ø</p>
+                                <p className="text-sm text-gray-600">í˜„ì¬ ì„œë¹™ ë²ˆí˜¸</p>
+                                <p className="text-xl font-bold text-blue-600">{queueInfo.currentServing}ë²ˆ</p>
                             </div>
                         </div>
                     </div>
@@ -238,7 +238,7 @@ export default function QueueStatusPage() {
                 {!isMyTurn && (
                     <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-6">
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-gray-600">ÁøÇà »óÈ²</span>
+                            <span className="text-sm font-medium text-gray-600">ì§„í–‰ ìƒí™©</span>
                             <span className="text-sm font-medium text-gray-600">
                 {Math.max(0, queueInfo.totalWaiting - queueInfo.queueNumber + 1)} / {queueInfo.totalWaiting}
               </span>
@@ -260,7 +260,7 @@ export default function QueueStatusPage() {
                         onClick={() => router.push("/stores")}
                         className="w-full bg-gradient-to-r from-rose-500 to-pink-500 text-white py-4 px-6 rounded-xl font-semibold shadow-lg hover:from-rose-600 hover:to-pink-600 transition-all duration-200"
                     >
-                        ´Ù¸¥ °¡°Ô Ã£±â
+                        ë‹¤ë¥¸ ê°€ê²Œ ì°¾ê¸°
                     </button>
 
                     <button
@@ -271,12 +271,12 @@ export default function QueueStatusPage() {
                         {isCancelling ? (
                             <>
                                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400"></div>
-                                Ãë¼Ò Áß...
+                                ì·¨ì†Œ ì¤‘...
                             </>
                         ) : (
                             <>
                                 <X className="h-5 w-5" />
-                                ´ë±â Ãë¼Ò
+                                ëŒ€ê¸° ì·¨ì†Œ
                             </>
                         )}
                     </button>
@@ -285,7 +285,7 @@ export default function QueueStatusPage() {
                 {/* Notice */}
                 <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mt-6">
                     <p className="text-sm text-yellow-800">
-                        <strong>¾È³»:</strong> ´ë±â¼ø¹øÀÌ µÇ¸é ¾Ë¸²À» º¸³»µå¸³´Ï´Ù. ¸ÅÀå »çÁ¤¿¡ µû¶ó ´ë±â½Ã°£ÀÌ º¯°æµÉ ¼ö ÀÖ½À´Ï´Ù.
+                        <strong>ì•ˆë‚´:</strong> ëŒ€ê¸°ìˆœë²ˆì´ ë˜ë©´ ì•Œë¦¼ì„ ë³´ë‚´ë“œë¦½ë‹ˆë‹¤. ë§¤ì¥ ì‚¬ì •ì— ë”°ë¼ ëŒ€ê¸°ì‹œê°„ì´ ë³€ê²½ë  ìˆ˜ ìˆìŠµë‹ˆë‹¤.
                     </p>
                 </div>
             </div>

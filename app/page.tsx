@@ -23,6 +23,7 @@ export default function KakaoLoginPage() {
         try {
             // 환경변수를 사용하여 콜백 URL을 동적으로 설정
             const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI}&response_type=code`
+            // const kakaoAuthUrl = `http://localhost:8090/oauth/authorization/kakao`
 
             window.location.href = kakaoAuthUrl
         } catch (error) {
