@@ -35,13 +35,18 @@ export default function StoreSearchPage() {
 
     useEffect(() => {
         // Check authentication
-        const token = localStorage.getItem("kakao_token")
-        const storeKey = localStorage.getItem("store_key")
+        // const token = localStorage.getItem("kakao_token")
+        // const storeKey = localStorage.getItem("store_key")
         const userInfoStr = localStorage.getItem("user_info")
 
-        if (!token || !storeKey || !userInfoStr) {
+        // if (!token || !storeKey || !userInfoStr) {
+        //     router.push("/")
+        //     return
+        // }
+
+        if(!userInfoStr){
             router.push("/")
-            return
+            return;
         }
 
         try {

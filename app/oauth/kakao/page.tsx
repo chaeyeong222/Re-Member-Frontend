@@ -81,7 +81,17 @@ export default function KakaoCallbackPage() {
                     setMessage("로그인 완료! 대시보드로 이동합니다.");
                     sessionStorage.setItem('socialId', data.socialId);
                     sessionStorage.setItem('nickname', data.nickname);
-                    // setTimeout(() => window.location.href = `${window.location.origin}/dashboard`, 1500);
+
+                    const userInfo = {
+                        id: data.socialId, // socialId를 id로 사용
+                        // name: formData.name,
+                        // phone: formData.phone,
+                    };
+
+                    // JSON.stringify()를 사용하여 객체를 문자열로 변환하여 저장
+                    localStorage.setItem("user_info", JSON.stringify(userInfo));
+
+                    setTimeout(() => window.location.href = `${window.location.origin}/store`, 1500);
                 }
 
                 setStatus("success");
