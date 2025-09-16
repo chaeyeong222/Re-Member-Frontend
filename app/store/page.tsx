@@ -1,9 +1,10 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Search, MapPin, Star, Clock, Filter, Heart, User, LogOut } from "lucide-react"
+import { Search, MapPin, Star, Clock, Heart, User, LogOut, Store as StoreIcon } from "lucide-react"
 
 interface UserInfo {
+    // storeKey: number
     id: number
     name: string
     email: string
@@ -11,7 +12,7 @@ interface UserInfo {
 }
 
 interface Store {
-    id: number
+    storeKey: number
     name: string
     category: string
     location: string
@@ -27,26 +28,17 @@ export default function StoreSearchPage() {
     const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
-    const [selectedCategory, setSelectedCategory] = useState("전체")
     const [stores, setStores] = useState<Store[]>([])
     const router = useRouter()
 
-    const categories = ["전체", "카페", "음식점", "미용실", "병원", "쇼핑", "기타"]
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
     useEffect(() => {
-        // Check authentication
-        // const token = localStorage.getItem("kakao_token")
-        // const storeKey = localStorage.getItem("store_key")
         const userInfoStr = localStorage.getItem("user_info")
 
-        // if (!token || !storeKey || !userInfoStr) {
-        //     router.push("/")
-        //     return
-        // }
-
-        if(!userInfoStr){
+        if (!userInfoStr) {
             router.push("/")
-            return;
+            return
         }
 
         try {
@@ -58,60 +50,35 @@ export default function StoreSearchPage() {
             return
         }
 
-        // Mock store data
-        setStores([
-            {
-                id: 1,
-                name: "카페 모카",
-                category: "카페",
-                location: "강남구 역삼동",
-                rating: 4.5,
-                reviewCount: 128,
-                waitTime: 15,
-                image: "/cozy-cafe-interior.png",
-                description: "아늑한 분위기의 스페셜티 커피 전문점",
-                isOpen: true,
-            },
-            {
-                id: 2,
-                name: "맛있는 파스타",
-                category: "음식점",
-                location: "서초구 서초동",
-                rating: 4.2,
-                reviewCount: 89,
-                waitTime: 25,
-                image: "/italian-restaurant-pasta.png",
-                description: "정통 이탈리안 파스타와 피자 전문점",
-                isOpen: true,
-            },
-            {
-                id: 3,
-                name: "헤어살롱 블루",
-                category: "미용실",
-                location: "강남구 신사동",
-                rating: 4.8,
-                reviewCount: 256,
-                waitTime: 45,
-                image: "/modern-hair-salon.png",
-                description: "트렌디한 헤어 디자인 전문 살롱",
-                isOpen: false,
-            },
-            {
-                id: 4,
-                name: "스마일 치과",
-                category: "병원",
-                location: "서초구 방배동",
-                rating: 4.6,
-                reviewCount: 167,
-                waitTime: 30,
-                image: "/modern-dental-clinic.png",
-                description: "첨단 장비를 갖춘 치과 전문 병원",
-                isOpen: true,
-            },
-        ])
+        // 컴포넌트 로드 시 전체 가게 목록을 불러옵니다.
+        fetchStores("");
+    }, [router]);
 
-        setIsLoading(false)
-    }, [router])
+    const fetchStores = async (query: string) => {
+        setIsLoading(true);
+        try {
+            const url = query ?
+                `${apiUrl}/store/findStore?storeName=${encodeURIComponent(query)}` :
+                `${apiUrl}/store/getStoreList`;
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error("Failed to fetch stores");
+            }
+            const data = await response.json();
+            setStores(data);
+        } catch (error) {
+            console.error("Error fetching stores:", error);
+            setStores([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleSearch = () => {
+        // 검색 버튼 클릭 시 검색어를 기반으로 fetchStores 함수 호출
+        fetchStores(searchQuery);
+    };
 
     const handleLogout = () => {
         localStorage.removeItem("kakao_token")
@@ -120,17 +87,13 @@ export default function StoreSearchPage() {
         router.push("/")
     }
 
-    const handleReservation = (storeId: number) => {
-        router.push(`/queue?storeId=${storeId}`)
+    const handleReservation = (storeKey: number) => {
+        router.push(`/queue?storeKey=${storeKey}`)
     }
 
-    const filteredStores = stores.filter((store) => {
-        const matchesSearch =
-            store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            store.location.toLowerCase().includes(searchQuery.toLowerCase())
-        const matchesCategory = selectedCategory === "전체" || store.category === selectedCategory
-        return matchesSearch && matchesCategory
-    })
+    const handleRegisterStore = () => {
+        router.push("/store/register")
+    }
 
     if (isLoading) {
         return (
@@ -163,6 +126,13 @@ export default function StoreSearchPage() {
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
+                            <button
+                                onClick={handleRegisterStore}
+                                className="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-gradient-to-r from-rose-500 to-pink-500 rounded-md hover:from-rose-600 hover:to-pink-600 transition-colors"
+                            >
+                                <StoreIcon className="h-4 w-4" />
+                                내 가게 등록하기
+                            </button>
                             <div className="flex items-center gap-2">
                                 <div className="w-6 h-6 bg-gradient-to-r from-rose-400 to-pink-400 rounded-md flex items-center justify-center">
                                     <User className="h-3 w-3 text-white" />
@@ -182,94 +152,72 @@ export default function StoreSearchPage() {
             </div>
 
             <div className="container mx-auto px-4 py-6">
-                {/* Search and Filter Section */}
+                {/* Search Section */}
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-6">
-                    <div className="space-y-4">
-                        {/* Search Bar */}
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder="가게명 또는 지역으로 검색하세요"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-                            />
-                        </div>
-
-                        {/* Category Filter */}
-                        <div className="flex items-center gap-2 overflow-x-auto pb-2">
-                            <Filter className="h-5 w-5 text-gray-500 flex-shrink-0" />
-                            {categories.map((category) => (
-                                <button
-                                    key={category}
-                                    onClick={() => setSelectedCategory(category)}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                                        selectedCategory === category
-                                            ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white"
-                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                    }`}
-                                >
-                                    {category}
-                                </button>
-                            ))}
-                        </div>
+                    <div className="relative flex items-center">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="가게명으로 검색하세요"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    handleSearch();
+                                }
+                            }}
+                            className="w-full pl-10 pr-24 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                        />
+                        <button
+                            onClick={handleSearch}
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-lg text-sm font-medium hover:from-rose-600 hover:to-pink-600 transition-colors"
+                        >
+                            검색
+                        </button>
                     </div>
                 </div>
 
                 {/* Store List */}
                 <div className="space-y-4">
-                    {filteredStores.length === 0 ? (
+                    {stores.length === 0 ? (
                         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-8 text-center">
                             <p className="text-gray-500">검색 결과가 없습니다.</p>
                         </div>
                     ) : (
-                        filteredStores.map((store) => (
-                            <div key={store.id} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden">
-                                <div className="flex">
-                                    <img src={store.image || "/placeholder.svg"} alt={store.name} className="w-32 h-32 object-cover" />
-                                    <div className="flex-1 p-4">
-                                        <div className="flex items-start justify-between mb-2">
-                                            <div>
-                                                <h3 className="font-bold text-lg text-gray-900">{store.name}</h3>
-                                                <p className="text-sm text-gray-600">{store.description}</p>
-                                            </div>
-                                            <div
-                                                className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                    store.isOpen ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                                                }`}
-                                            >
-                                                {store.isOpen ? "영업중" : "영업종료"}
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-4 mb-3 text-sm text-gray-600">
-                                            <div className="flex items-center gap-1">
-                                                <MapPin className="h-4 w-4" />
-                                                {store.location}
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <Star className="h-4 w-4 text-yellow-500" />
-                                                {store.rating} ({store.reviewCount})
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <Clock className="h-4 w-4" />
-                                                대기 {store.waitTime}분
-                                            </div>
-                                        </div>
-
-                                        <button
-                                            onClick={() => handleReservation(store.id)}
-                                            disabled={!store.isOpen}
-                                            className={`w-full py-2 px-4 rounded-xl font-medium transition-colors ${
-                                                store.isOpen
-                                                    ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-600 hover:to-pink-600"
-                                                    : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                                            }`}
-                                        >
-                                            {store.isOpen ? "예약하기" : "영업종료"}
-                                        </button>
+                        stores.map((store) => (
+                            <div key={store.storeKey} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden p-4">
+                                <div className="space-y-3">
+                                    <div>
+                                        <h3 className="font-bold text-lg text-gray-900">{store.name}</h3>
+                                        <p className="text-sm text-gray-600">{store.description}</p>
                                     </div>
+
+                                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                                        <div className="flex items-center gap-1">
+                                            <MapPin className="h-4 w-4" />
+                                            {store.location}
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Star className="h-4 w-4 text-yellow-500" />
+                                            {store.rating} ({store.reviewCount})
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Clock className="h-4 w-4" />
+                                            대기 {store.waitTime}분
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={() => handleReservation(store.storeKey)}
+                                        disabled={!store.isOpen}
+                                        className={`w-full py-2 px-4 rounded-xl font-medium transition-colors ${
+                                            store.isOpen
+                                                ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-600 hover:to-pink-600"
+                                                : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                        }`}
+                                    >
+                                        {store.isOpen ? "예약하기" : "예약 불가"}
+                                    </button>
                                 </div>
                             </div>
                         ))
