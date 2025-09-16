@@ -1,10 +1,9 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Search, MapPin, Star, Clock, Heart, User, LogOut, Store as StoreIcon } from "lucide-react"
+import { Search, MapPin, Heart, User, LogOut, Store as StoreIcon } from "lucide-react"
 
 interface UserInfo {
-    // storeKey: number
     id: number
     name: string
     email: string
@@ -13,15 +12,10 @@ interface UserInfo {
 
 interface Store {
     storeKey: number
-    name: string
-    category: string
-    location: string
-    rating: number
-    reviewCount: number
-    waitTime: number
-    image: string
-    description: string
-    isOpen: boolean
+    storeName: string
+    address: string
+    phone: string | null
+    introduction: string
 }
 
 export default function StoreSearchPage() {
@@ -50,7 +44,6 @@ export default function StoreSearchPage() {
             return
         }
 
-        // 컴포넌트 로드 시 전체 가게 목록을 불러옵니다.
         fetchStores("");
     }, [router]);
 
@@ -76,7 +69,6 @@ export default function StoreSearchPage() {
     };
 
     const handleSearch = () => {
-        // 검색 버튼 클릭 시 검색어를 기반으로 fetchStores 함수 호출
         fetchStores(searchQuery);
     };
 
@@ -188,35 +180,30 @@ export default function StoreSearchPage() {
                             <div key={store.storeKey} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden p-4">
                                 <div className="space-y-3">
                                     <div>
-                                        <h3 className="font-bold text-lg text-gray-900">{store.name}</h3>
-                                        <p className="text-sm text-gray-600">{store.description}</p>
+                                        <h3 className="font-bold text-lg text-gray-900">{store.storeName}</h3>
+                                        <p className="text-sm text-gray-600">{store.introduction}</p>
                                     </div>
 
                                     <div className="flex items-center gap-4 text-sm text-gray-600">
                                         <div className="flex items-center gap-1">
                                             <MapPin className="h-4 w-4" />
-                                            {store.location}
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <Star className="h-4 w-4 text-yellow-500" />
-                                            {store.rating} ({store.reviewCount})
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <Clock className="h-4 w-4" />
-                                            대기 {store.waitTime}분
+                                            {store.address}
                                         </div>
                                     </div>
 
+                                    {/* 가게 번호 추가 */}
+                                    {store.phone && (
+                                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                                            <span className="font-semibold text-gray-800">전화번호:</span>
+                                            {store.phone}
+                                        </div>
+                                    )}
+
                                     <button
                                         onClick={() => handleReservation(store.storeKey)}
-                                        disabled={!store.isOpen}
-                                        className={`w-full py-2 px-4 rounded-xl font-medium transition-colors ${
-                                            store.isOpen
-                                                ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-600 hover:to-pink-600"
-                                                : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                                        }`}
+                                        className={`w-full py-2 px-4 rounded-xl font-medium transition-colors bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-600 hover:to-pink-600`}
                                     >
-                                        {store.isOpen ? "예약하기" : "예약 불가"}
+                                        예약하기
                                     </button>
                                 </div>
                             </div>
