@@ -130,7 +130,7 @@ export default function StoreRegister() {
                         <br />
                         승인 후 서비스를 이용하실 수 있습니다.
                     </p>
-                    <Link href="/">
+                    <Link href="/store">
                         <button className="w-full px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-lg font-semibold transition-all duration-300 hover:shadow-lg">
                             메인으로 돌아가기
                         </button>
