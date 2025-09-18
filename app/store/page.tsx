@@ -79,9 +79,42 @@ export default function StoreSearchPage() {
         router.push("/")
     }
 
-    const handleReservation = (storeKey: number) => {
-        router.push(`/queue?storeKey=${storeKey}`)
-    }
+    // 예약하기 버튼 클릭 시 대기열 등록
+    const handleReservation = async (storeKey: number) => {
+        if (!userInfo) {
+            router.push("/"); // 유저 정보가 없으면 로그인 페이지로 리다이렉트
+            return;
+        }
+
+        const userId = userInfo.id;
+        const queueName = `store_queue_${storeKey}`; // 가게별 큐 이름 생성 (예: store_queue_1)
+
+        try {
+            const response = await fetch(`${apiUrl}/waiting-room?queue=${queueName}&user_id=${userId}`);
+
+            if (!response.ok) {
+                throw new Error("Failed to register for waiting queue");
+            }
+
+            const data = await response.json();
+
+            // 응답 데이터에서 rank를 확인하여 페이지 이동 결정
+            if (data.number === 0) {
+                // 대기 순번이 0이면, 바로 예약 페이지로 이동
+                // 백엔드 로직에 따라 랭크 0은 바로 예약 가능한 상태를 의미
+                router.push(`/booking?storeKey=${storeKey}`);
+            } else {
+                // 대기 순번이 0이 아니면, 대기열 페이지로 이동
+                // 필요한 경우 대기 순번 정보를 쿼리 파라미터로 넘겨줄 수 있음
+                router.push(`/waiting-room?queue=${queueName}&userId=${userId}`);
+            }
+
+        } catch (error) {
+            console.error("Error during reservation process:", error);
+            // 에러 발생 시, 사용자에게 알림을 제공하거나 특정 페이지로 리다이렉트
+            alert("예약 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
+        }
+    };
 
     const handleRegisterStore = () => {
         router.push("/store/register")
