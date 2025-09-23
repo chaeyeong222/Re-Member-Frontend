@@ -81,33 +81,42 @@ export default function StoreSearchPage() {
 
     const handleReservation = async (storeKey: number) => {
         if (!userInfo) {
+            alert("로그인이 필요합니다.");
             router.push("/");
             return;
         }
 
-        const userId = userInfo.id;
-        const queueName = `store_queue_${storeKey}`;
-
         try {
-            const response = await fetch(`${apiUrl}/waiting-room?queue=${queueName}&user_id=${userId}`);
+            const queue = `store_queue_${storeKey}`;
+            const userId = userInfo.id;
+
+            // 백엔드의 새로운 진입점 API를 호출 (여기서 대기열 등록/확인/토큰 발급이 모두 처리됨)
+            const response = await fetch(`${apiUrl}/waiting-room?queue=${queue}&user_id=${userId}`);
 
             if (!response.ok) {
-                throw new Error("Failed to register for waiting queue");
+                throw new Error("Failed to start reservation process");
             }
 
+            // 백엔드로부터 받은 리다이렉션 URL을 사용하여 페이지 이동
             const data = await response.json();
+            // 백엔드 응답이 리다이렉션 URL을 직접 제공하는 방식이라면
+            // router.push(data.redirectUrl);
+            // 또는, 백엔드가 status code 302와 Location 헤더로 처리하는 방식이라면, 프론트엔드는 추가 작업이 필요없음
 
-            if (data.number === 0) {
-                router.push(`/booking?storeKey=${storeKey}`);
+            // 하지만 백엔드 로직에 맞춰 number 값을 확인하는 방식이 더 유연합니다.
+            if (data.number > 0) {
+                // 대기 순번이 있다면 대기열 페이지로 이동
+                router.push(`/queue?storeKey=${storeKey}&queue=${queue}&userId=${userId}`);
             } else {
-                router.push(`/waiting-room?queue=${queueName}&userId=${userId}`);
+                // 순번이 0이면 바로 예약 페이지로 이동
+                router.push(`/booking?storeKey=${storeKey}`);
             }
 
         } catch (error) {
-            console.error("Error during reservation process:", error);
-            alert("예약 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
+            console.error("예약 처리 중 오류 발생:", error);
+            alert("예약 처리 중 오류가 발생했습니다. 다시 시도해 주세요.");
         }
-    };
+    }
 
     const handleRegisterStore = () => {
         router.push("/store/register")
