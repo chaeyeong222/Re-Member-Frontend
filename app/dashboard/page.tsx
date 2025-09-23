@@ -17,10 +17,14 @@ interface Customer {
   favoriteService: string
 }
 
-// Function to fetch customers from the API
-const fetchCustomers = async (): Promise<Customer[]> => {
+
+const fetchCustomers = async (storeKey: string): Promise<Customer[]> => {
+  if (!storeKey) {
+    console.error("Store key is not available.")
+    return []
+  }
   try {
-    const response = await fetch("http://localhost:8090/customer/getCustomers")
+    const response = await fetch(`${apiUrl}/customer/getCustomers?storeKey=${storeKey}`)
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
     }
@@ -28,7 +32,7 @@ const fetchCustomers = async (): Promise<Customer[]> => {
     return data
   } catch (error) {
     console.error("Failed to fetch customers:", error)
-    return [] // Return an empty array on error
+    return []
   }
 }
 
@@ -37,11 +41,17 @@ export default function CustomerDashboard() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isLoading, setIsLoading] = useState(true)
 
-  // Fetch data on component mount
   useEffect(() => {
     const getCustomers = async () => {
-      const data = await fetchCustomers()
-      setCustomers(data)
+      // 1. localStorage에서 storeKey 가져오기
+      const storeKey = localStorage.getItem("store_key")
+
+      if (storeKey) {
+        const data = await fetchCustomers(storeKey)
+        setCustomers(data)
+      } else {
+        console.error("Store key not found in localStorage.")
+      }
       setIsLoading(false)
     }
     getCustomers()
