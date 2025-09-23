@@ -23,28 +23,75 @@ export default function SignupPage() {
 
     const handleCompleteSignup = async () => {
         if (!formData.name.trim() || !formData.phone.trim()) {
-            alert("이름과 연락처를 모두 입력해주세요.")
-            return
+            alert("이름과 연락처를 모두 입력해주세요.");
+            return;
         }
 
-        setIsLoading(true)
+        setIsLoading(true);
 
         try {
-            await new Promise((resolve) => setTimeout(resolve, 1500))
+            const signupInfoString = sessionStorage.getItem("signupInfo");
 
-            // Store user info and redirect to dashboard
-            localStorage.setItem("user_name", formData.name)
-            localStorage.setItem("user_phone", formData.phone)
-            localStorage.setItem("kakao_token", "mock_token")
-            localStorage.setItem("store_key", "store_" + Date.now())
+            if (!signupInfoString) {
+                alert("회원가입 정보를 찾을 수 없습니다. 다시 시도해주세요.");
+                setIsLoading(false);
+                return;
+            }
 
-            router.push("/dashboard")
+            // JSON 문자열을 객체로 변환
+            const signupInfo = JSON.parse(signupInfoString);
+
+            // 객체에서 socialId와 nickname 값 추출
+            const { socialId, nickname } = signupInfo;
+
+            const payload = {
+                name: formData.name,
+                phone: formData.phone,
+                socialId: socialId,
+                nickname: nickname,
+                email: "",
+                id: "",
+                token: "mock_token",
+            };
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/signup/customer`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (response.ok) {
+                const result = await response.text();
+                console.log("회원가입 성공:", result);
+                alert("회원가입이 완료되었습니다.");
+
+                const userInfo = {
+                    id: socialId, // socialId를 id로 사용
+                    name: formData.name,
+                    phone: formData.phone,
+                };
+
+                // JSON.stringify()를 사용하여 객체를 문자열로 변환하여 저장
+                localStorage.setItem("user_info", JSON.stringify(userInfo));
+
+                // 페이지 이동
+                router.push("/store");
+
+            } else {
+                const errorData = await response.text();
+                console.error("회원가입 실패:", errorData);
+                alert("회원가입에 실패했습니다. 다시 시도해주세요. (" + response.status + ")");
+            }
+
         } catch (error) {
-            console.error("Signup failed:", error)
-            alert("회원가입에 실패했습니다. 다시 시도해주세요.")
-            setIsLoading(false)
+            console.error("회원가입 실패:", error);
+            alert("네트워크 오류 또는 데이터 처리 오류로 회원가입에 실패했습니다.");
+        } finally {
+            setIsLoading(false);
         }
-    }
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-orange-50 via-rose-50 to-pink-50 flex items-center justify-center p-4">

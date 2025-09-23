@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Search, MapPin, Star, Clock, Filter, Heart, User, LogOut } from "lucide-react"
+import { Search, MapPin, Heart, User, LogOut, Store as StoreIcon } from "lucide-react"
 
 interface UserInfo {
     id: number
@@ -11,35 +11,26 @@ interface UserInfo {
 }
 
 interface Store {
-    id: number
-    name: string
-    category: string
-    location: string
-    rating: number
-    reviewCount: number
-    waitTime: number
-    image: string
-    description: string
-    isOpen: boolean
+    storeKey: number
+    storeName: string
+    address: string
+    phone: string | null
+    introduction: string
 }
 
 export default function StoreSearchPage() {
     const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
-    const [selectedCategory, setSelectedCategory] = useState("¿¸√º")
     const [stores, setStores] = useState<Store[]>([])
     const router = useRouter()
 
-    const categories = ["¿¸√º", "ƒ´∆‰", "¿ΩΩƒ¡°", "πÃøÎΩ«", "∫¥ø¯", "ºÓ«Œ", "±‚≈∏"]
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
     useEffect(() => {
-        // Check authentication
-        const token = localStorage.getItem("kakao_token")
-        const storeKey = localStorage.getItem("store_key")
         const userInfoStr = localStorage.getItem("user_info")
 
-        if (!token || !storeKey || !userInfoStr) {
+        if (!userInfoStr) {
             router.push("/")
             return
         }
@@ -53,60 +44,33 @@ export default function StoreSearchPage() {
             return
         }
 
-        // Mock store data
-        setStores([
-            {
-                id: 1,
-                name: "ƒ´∆‰ ∏ƒ´",
-                category: "ƒ´∆‰",
-                location: "∞≠≥≤±∏ ø™ªÔµø",
-                rating: 4.5,
-                reviewCount: 128,
-                waitTime: 15,
-                image: "/cozy-cafe-interior.png",
-                description: "æ∆¥¡«— ∫–¿ß±‚¿« Ω∫∆‰º»∆º ƒø«« ¿¸πÆ¡°",
-                isOpen: true,
-            },
-            {
-                id: 2,
-                name: "∏¿¿÷¥¬ ∆ƒΩ∫≈∏",
-                category: "¿ΩΩƒ¡°",
-                location: "º≠√ ±∏ º≠√ µø",
-                rating: 4.2,
-                reviewCount: 89,
-                waitTime: 25,
-                image: "/italian-restaurant-pasta.png",
-                description: "¡§≈Î ¿Ã≈ª∏Ææ» ∆ƒΩ∫≈∏øÕ ««¿⁄ ¿¸πÆ¡°",
-                isOpen: true,
-            },
-            {
-                id: 3,
-                name: "«ÏæÓªÏ∑’ ∫Ì∑Á",
-                category: "πÃøÎΩ«",
-                location: "∞≠≥≤±∏ Ω≈ªÁµø",
-                rating: 4.8,
-                reviewCount: 256,
-                waitTime: 45,
-                image: "/modern-hair-salon.png",
-                description: "∆Æ∑ªµ«— «ÏæÓ µ¿⁄¿Œ ¿¸πÆ ªÏ∑’",
-                isOpen: false,
-            },
-            {
-                id: 4,
-                name: "Ω∫∏∂¿œ ƒ°∞˙",
-                category: "∫¥ø¯",
-                location: "º≠√ ±∏ πÊπËµø",
-                rating: 4.6,
-                reviewCount: 167,
-                waitTime: 30,
-                image: "/modern-dental-clinic.png",
-                description: "√∑¥‹ ¿Â∫Ò∏¶ ∞Æ√· ƒ°∞˙ ¿¸πÆ ∫¥ø¯",
-                isOpen: true,
-            },
-        ])
+        fetchStores("");
+    }, [router]);
 
-        setIsLoading(false)
-    }, [router])
+    const fetchStores = async (query: string) => {
+        setIsLoading(true);
+        try {
+            const url = query ?
+                `${apiUrl}/store/findStore?storeName=${encodeURIComponent(query)}` :
+                `${apiUrl}/store/getStoreList`;
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error("Failed to fetch stores");
+            }
+            const data = await response.json();
+            setStores(data);
+        } catch (error) {
+            console.error("Error fetching stores:", error);
+            setStores([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleSearch = () => {
+        fetchStores(searchQuery);
+    };
 
     const handleLogout = () => {
         localStorage.removeItem("kakao_token")
@@ -115,23 +79,52 @@ export default function StoreSearchPage() {
         router.push("/")
     }
 
-    const handleReservation = (storeId: number) => {
-        router.push(`/queue?storeId=${storeId}`)
-    }
+    // ÏòàÏïΩÌïòÍ∏∞ Î≤ÑÌäº ÌÅ¥Î¶≠ Ïãú ÎåÄÍ∏∞Ïó¥ Îì±Î°ù
+    const handleReservation = async (storeKey: number) => {
+        if (!userInfo) {
+            router.push("/"); // Ïú†Ï†Ä Ï†ïÎ≥¥Í∞Ä ÏóÜÏúºÎ©¥ Î°úÍ∑∏Ïù∏ ÌéòÏù¥ÏßÄÎ°ú Î¶¨Îã§Ïù¥Î†âÌä∏
+            return;
+        }
 
-    const filteredStores = stores.filter((store) => {
-        const matchesSearch =
-            store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            store.location.toLowerCase().includes(searchQuery.toLowerCase())
-        const matchesCategory = selectedCategory === "¿¸√º" || store.category === selectedCategory
-        return matchesSearch && matchesCategory
-    })
+        const userId = userInfo.id;
+        const queueName = `store_queue_${storeKey}`; // Í∞ÄÍ≤åÎ≥Ñ ÌÅê Ïù¥Î¶Ñ ÏÉùÏÑ± (Ïòà: store_queue_1)
+
+        try {
+            const response = await fetch(`${apiUrl}/waiting-room?queue=${queueName}&user_id=${userId}`);
+
+            if (!response.ok) {
+                throw new Error("Failed to register for waiting queue");
+            }
+
+            const data = await response.json();
+
+            // ÏùëÎãµ Îç∞Ïù¥ÌÑ∞ÏóêÏÑú rankÎ•º ÌôïÏù∏ÌïòÏó¨ ÌéòÏù¥ÏßÄ Ïù¥Îèô Í≤∞Ï†ï
+            if (data.number === 0) {
+                // ÎåÄÍ∏∞ ÏàúÎ≤àÏù¥ 0Ïù¥Î©¥, Î∞îÎ°ú ÏòàÏïΩ ÌéòÏù¥ÏßÄÎ°ú Ïù¥Îèô
+                // Î∞±ÏóîÎìú Î°úÏßÅÏóê Îî∞Îùº Îû≠ÌÅ¨ 0ÏùÄ Î∞îÎ°ú ÏòàÏïΩ Í∞ÄÎä•Ìïú ÏÉÅÌÉúÎ•º ÏùòÎØ∏
+                router.push(`/booking?storeKey=${storeKey}`);
+            } else {
+                // ÎåÄÍ∏∞ ÏàúÎ≤àÏù¥ 0Ïù¥ ÏïÑÎãàÎ©¥, ÎåÄÍ∏∞Ïó¥ ÌéòÏù¥ÏßÄÎ°ú Ïù¥Îèô
+                // ÌïÑÏöîÌïú Í≤ΩÏö∞ ÎåÄÍ∏∞ ÏàúÎ≤à Ï†ïÎ≥¥Î•º ÏøºÎ¶¨ ÌååÎùºÎØ∏ÌÑ∞Î°ú ÎÑòÍ≤®Ï§Ñ Ïàò ÏûàÏùå
+                router.push(`/waiting-room?queue=${queueName}&userId=${userId}`);
+            }
+
+        } catch (error) {
+            console.error("Error during reservation process:", error);
+            // ÏóêÎü¨ Î∞úÏÉù Ïãú, ÏÇ¨Ïö©ÏûêÏóêÍ≤å ÏïåÎ¶ºÏùÑ Ï†úÍ≥µÌïòÍ±∞ÎÇò ÌäπÏ†ï ÌéòÏù¥ÏßÄÎ°ú Î¶¨Îã§Ïù¥Î†âÌä∏
+            alert("ÏòàÏïΩ Ï≤òÎ¶¨ Ï§ë Ïò§Î•òÍ∞Ä Î∞úÏÉùÌñàÏäµÎãàÎã§. Îã§Ïãú ÏãúÎèÑÌï¥Ï£ºÏÑ∏Ïöî.");
+        }
+    };
+
+    const handleRegisterStore = () => {
+        router.push("/store/register")
+    }
 
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-orange-50 via-rose-50 to-pink-50 flex items-center justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                <span className="ml-4 text-gray-600">∑Œµ˘ ¡ﬂ...</span>
+                <span className="ml-4 text-gray-600">Î°úÎî© Ï§ë...</span>
             </div>
         )
     }
@@ -154,10 +147,17 @@ export default function StoreSearchPage() {
                                 <h1 className="font-bold text-lg bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
                                     Re:Member
                                 </h1>
-                                <p className="text-xs text-gray-600">∞°∞‘ √£±‚</p>
+                                <p className="text-xs text-gray-600">Í∞ÄÍ≤å Ï∞æÍ∏∞</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
+                            <button
+                                onClick={handleRegisterStore}
+                                className="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-gradient-to-r from-rose-500 to-pink-500 rounded-md hover:from-rose-600 hover:to-pink-600 transition-colors"
+                            >
+                                <StoreIcon className="h-4 w-4" />
+                                ÎÇ¥ Í∞ÄÍ≤å Îì±Î°ùÌïòÍ∏∞
+                            </button>
                             <div className="flex items-center gap-2">
                                 <div className="w-6 h-6 bg-gradient-to-r from-rose-400 to-pink-400 rounded-md flex items-center justify-center">
                                     <User className="h-3 w-3 text-white" />
@@ -169,7 +169,7 @@ export default function StoreSearchPage() {
                                 className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
                             >
                                 <LogOut className="h-3 w-3" />
-                                ∑Œ±◊æ∆øÙ
+                                Î°úÍ∑∏ÏïÑÏõÉ
                             </button>
                         </div>
                     </div>
@@ -177,94 +177,67 @@ export default function StoreSearchPage() {
             </div>
 
             <div className="container mx-auto px-4 py-6">
-                {/* Search and Filter Section */}
+                {/* Search Section */}
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-6">
-                    <div className="space-y-4">
-                        {/* Search Bar */}
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder="∞°∞‘∏Ì ∂«¥¬ ¡ˆø™¿∏∑Œ ∞Àªˆ«œººø‰"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-                            />
-                        </div>
-
-                        {/* Category Filter */}
-                        <div className="flex items-center gap-2 overflow-x-auto pb-2">
-                            <Filter className="h-5 w-5 text-gray-500 flex-shrink-0" />
-                            {categories.map((category) => (
-                                <button
-                                    key={category}
-                                    onClick={() => setSelectedCategory(category)}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                                        selectedCategory === category
-                                            ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white"
-                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                    }`}
-                                >
-                                    {category}
-                                </button>
-                            ))}
-                        </div>
+                    <div className="relative flex items-center">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Í∞ÄÍ≤åÎ™ÖÏúºÎ°ú Í≤ÄÏÉâÌïòÏÑ∏Ïöî"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    handleSearch();
+                                }
+                            }}
+                            className="w-full pl-10 pr-24 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                        />
+                        <button
+                            onClick={handleSearch}
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-lg text-sm font-medium hover:from-rose-600 hover:to-pink-600 transition-colors"
+                        >
+                            Í≤ÄÏÉâ
+                        </button>
                     </div>
                 </div>
 
                 {/* Store List */}
                 <div className="space-y-4">
-                    {filteredStores.length === 0 ? (
+                    {stores.length === 0 ? (
                         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-8 text-center">
-                            <p className="text-gray-500">∞Àªˆ ∞·∞˙∞° æ¯Ω¿¥œ¥Ÿ.</p>
+                            <p className="text-gray-500">Í≤ÄÏÉâ Í≤∞Í≥ºÍ∞Ä ÏóÜÏäµÎãàÎã§.</p>
                         </div>
                     ) : (
-                        filteredStores.map((store) => (
-                            <div key={store.id} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden">
-                                <div className="flex">
-                                    <img src={store.image || "/placeholder.svg"} alt={store.name} className="w-32 h-32 object-cover" />
-                                    <div className="flex-1 p-4">
-                                        <div className="flex items-start justify-between mb-2">
-                                            <div>
-                                                <h3 className="font-bold text-lg text-gray-900">{store.name}</h3>
-                                                <p className="text-sm text-gray-600">{store.description}</p>
-                                            </div>
-                                            <div
-                                                className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                    store.isOpen ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                                                }`}
-                                            >
-                                                {store.isOpen ? "øµæ˜¡ﬂ" : "øµæ˜¡æ∑·"}
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-4 mb-3 text-sm text-gray-600">
-                                            <div className="flex items-center gap-1">
-                                                <MapPin className="h-4 w-4" />
-                                                {store.location}
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <Star className="h-4 w-4 text-yellow-500" />
-                                                {store.rating} ({store.reviewCount})
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <Clock className="h-4 w-4" />
-                                                ¥Î±‚ {store.waitTime}∫–
-                                            </div>
-                                        </div>
-
-                                        <button
-                                            onClick={() => handleReservation(store.id)}
-                                            disabled={!store.isOpen}
-                                            className={`w-full py-2 px-4 rounded-xl font-medium transition-colors ${
-                                                store.isOpen
-                                                    ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-600 hover:to-pink-600"
-                                                    : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                                            }`}
-                                        >
-                                            {store.isOpen ? "øπæ‡«œ±‚" : "øµæ˜¡æ∑·"}
-                                        </button>
+                        stores.map((store) => (
+                            <div key={store.storeKey} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden p-4">
+                                <div className="space-y-3">
+                                    <div>
+                                        <h3 className="font-bold text-lg text-gray-900">{store.storeName}</h3>
+                                        <p className="text-sm text-gray-600">{store.introduction}</p>
                                     </div>
+
+                                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                                        <div className="flex items-center gap-1">
+                                            <MapPin className="h-4 w-4" />
+                                            {store.address}
+                                        </div>
+                                    </div>
+
+                                    {/* Í∞ÄÍ≤å Î≤àÌò∏ Ï∂îÍ∞Ä */}
+                                    {store.phone && (
+                                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                                            <span className="font-semibold text-gray-800">Ï†ÑÌôîÎ≤àÌò∏:</span>
+                                            {store.phone}
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={() => handleReservation(store.storeKey)}
+                                        className={`w-full py-2 px-4 rounded-xl font-medium transition-colors bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-600 hover:to-pink-600`}
+                                    >
+                                        ÏòàÏïΩÌïòÍ∏∞
+                                    </button>
                                 </div>
                             </div>
                         ))
