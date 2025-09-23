@@ -24,7 +24,7 @@ const fetchCustomers = async (storeKey: string): Promise<Customer[]> => {
     return []
   }
   try {
-    const response = await fetch(`${apiUrl}/customer/getCustomers?storeKey=${storeKey}`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/customer/getCustomers?storeKey=${storeKey}`)
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
     }

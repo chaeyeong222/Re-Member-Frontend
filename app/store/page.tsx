@@ -25,7 +25,7 @@ export default function StoreSearchPage() {
     const [stores, setStores] = useState<Store[]>([])
     const router = useRouter()
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8090";
 
     useEffect(() => {
         const userInfoStr = localStorage.getItem("user_info")
