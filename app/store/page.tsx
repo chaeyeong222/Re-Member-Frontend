@@ -7,7 +7,7 @@ interface UserInfo {
     id: number
     name: string
     email: string
-    storeKey: string
+    storeKey: string | null // storeKey가 없을 수도 있으므로 null 타입을 추가했습니다.
 }
 
 interface Store {
@@ -25,7 +25,7 @@ export default function StoreSearchPage() {
     const [stores, setStores] = useState<Store[]>([])
     const router = useRouter()
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8090";
 
     useEffect(() => {
         const userInfoStr = localStorage.getItem("user_info")
@@ -79,45 +79,51 @@ export default function StoreSearchPage() {
         router.push("/")
     }
 
-    // 예약하기 버튼 클릭 시 대기열 등록
     const handleReservation = async (storeKey: number) => {
         if (!userInfo) {
-            router.push("/"); // 유저 정보가 없으면 로그인 페이지로 리다이렉트
+            alert("로그인이 필요합니다.");
+            router.push("/");
             return;
         }
 
-        const userId = userInfo.id;
-        const queueName = `store_queue_${storeKey}`; // 가게별 큐 이름 생성 (예: store_queue_1)
-
         try {
-            const response = await fetch(`${apiUrl}/waiting-room?queue=${queueName}&user_id=${userId}`);
+            const queue = `store_queue_${storeKey}`;
+            const userId = userInfo.id;
+
+            // 백엔드의 새로운 진입점 API를 호출 (여기서 대기열 등록/확인/토큰 발급이 모두 처리됨)
+            const response = await fetch(`${apiUrl}/waiting-room?queue=${queue}&user_id=${userId}`);
 
             if (!response.ok) {
-                throw new Error("Failed to register for waiting queue");
+                throw new Error("Failed to start reservation process");
             }
 
+            // 백엔드로부터 받은 리다이렉션 URL을 사용하여 페이지 이동
             const data = await response.json();
+            // 백엔드 응답이 리다이렉션 URL을 직접 제공하는 방식이라면
+            // router.push(data.redirectUrl);
+            // 또는, 백엔드가 status code 302와 Location 헤더로 처리하는 방식이라면, 프론트엔드는 추가 작업이 필요없음
 
-            // 응답 데이터에서 rank를 확인하여 페이지 이동 결정
-            if (data.number === 0) {
-                // 대기 순번이 0이면, 바로 예약 페이지로 이동
-                // 백엔드 로직에 따라 랭크 0은 바로 예약 가능한 상태를 의미
-                router.push(`/booking?storeKey=${storeKey}`);
+            // 하지만 백엔드 로직에 맞춰 number 값을 확인하는 방식이 더 유연합니다.
+            if (data.number > 0) {
+                // 대기 순번이 있다면 대기열 페이지로 이동
+                router.push(`/queue?storeKey=${storeKey}&queue=${queue}&userId=${userId}`);
             } else {
-                // 대기 순번이 0이 아니면, 대기열 페이지로 이동
-                // 필요한 경우 대기 순번 정보를 쿼리 파라미터로 넘겨줄 수 있음
-                router.push(`/waiting-room?queue=${queueName}&userId=${userId}`);
+                // 순번이 0이면 바로 예약 페이지로 이동
+                router.push(`/booking?storeKey=${storeKey}`);
             }
 
         } catch (error) {
-            console.error("Error during reservation process:", error);
-            // 에러 발생 시, 사용자에게 알림을 제공하거나 특정 페이지로 리다이렉트
-            alert("예약 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
+            console.error("예약 처리 중 오류 발생:", error);
+            alert("예약 처리 중 오류가 발생했습니다. 다시 시도해 주세요.");
         }
-    };
+    }
 
     const handleRegisterStore = () => {
         router.push("/store/register")
+    }
+
+    const handleManageStore = () => {
+        router.push("/dash") // dash/page.tsx로 연결
     }
 
     if (isLoading) {
@@ -151,13 +157,25 @@ export default function StoreSearchPage() {
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
-                            <button
-                                onClick={handleRegisterStore}
-                                className="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-gradient-to-r from-rose-500 to-pink-500 rounded-md hover:from-rose-600 hover:to-pink-600 transition-colors"
-                            >
-                                <StoreIcon className="h-4 w-4" />
-                                내 가게 등록하기
-                            </button>
+                            {/* 조건부 렌더링 시작 */}
+                            {userInfo.storeKey ? (
+                                <button
+                                    onClick={handleManageStore}
+                                    className="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-gradient-to-r from-rose-500 to-pink-500 rounded-md hover:from-rose-600 hover:to-pink-600 transition-colors"
+                                >
+                                    <StoreIcon className="h-4 w-4" />
+                                    내 가게 관리하기
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleRegisterStore}
+                                    className="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-gradient-to-r from-rose-500 to-pink-500 rounded-md hover:from-rose-600 hover:to-pink-600 transition-colors"
+                                >
+                                    <StoreIcon className="h-4 w-4" />
+                                    내 가게 등록하기
+                                </button>
+                            )}
+                            {/* 조건부 렌더링 끝 */}
                             <div className="flex items-center gap-2">
                                 <div className="w-6 h-6 bg-gradient-to-r from-rose-400 to-pink-400 rounded-md flex items-center justify-center">
                                     <User className="h-3 w-3 text-white" />
@@ -224,7 +242,6 @@ export default function StoreSearchPage() {
                                         </div>
                                     </div>
 
-                                    {/* 가게 번호 추가 */}
                                     {store.phone && (
                                         <div className="flex items-center gap-4 text-sm text-gray-600">
                                             <span className="font-semibold text-gray-800">전화번호:</span>
