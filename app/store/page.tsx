@@ -4,14 +4,14 @@ import { useRouter } from "next/navigation"
 import { Search, MapPin, Heart, User, LogOut, Store as StoreIcon } from "lucide-react"
 
 interface UserInfo {
-    id: number
+    socialId: string
     name: string
     email: string
     storeKey: string | null // storeKey가 없을 수도 있으므로 null 타입을 추가했습니다.
 }
 
 interface Store {
-    storeKey: number
+    storeKey: string
     storeName: string
     address: string
     phone: string | null
@@ -79,7 +79,7 @@ export default function StoreSearchPage() {
         router.push("/")
     }
 
-    const handleReservation = async (storeKey: number) => {
+    const handleReservation = async (storeKey: string) => {
         if (!userInfo) {
             alert("로그인이 필요합니다.");
             router.push("/");
@@ -88,7 +88,7 @@ export default function StoreSearchPage() {
 
         try {
             const queue = `store_queue_${storeKey}`;
-            const userId = userInfo.id;
+            const userId = userInfo.socialId;
 
             // 백엔드의 새로운 진입점 API를 호출 (여기서 대기열 등록/확인/토큰 발급이 모두 처리됨)
             const response = await fetch(`${apiUrl}/waiting-room?queue=${queue}&user_id=${userId}`);
@@ -118,9 +118,41 @@ export default function StoreSearchPage() {
         }
     }
 
-    const handleRegisterStore = () => {
-        router.push("/store/register")
-    }
+    const handleRegisterStore = async () => {
+
+        if (!userInfo) {
+            alert("로그인이 필요합니다.");
+            router.push("/");
+            return;
+        }
+        // 객체에서 socialId와 nickname 값 추출
+        const socialIdStr = String(userInfo.socialId);
+        try {
+            // 백엔드 API를 호출하여 해당 socialId로 등록된 가게가 있는지 확인
+            const response = await fetch(`${apiUrl}/store/getStore/${encodeURIComponent(socialIdStr)}`);
+
+            if (response.ok) {
+                // HTTP 200 OK: 이미 등록된 가게가 있음
+                const storeData = await response.json();
+                localStorage.setItem("store_key", storeData.storeKey);
+
+                setUserInfo(prev => prev ? { ...prev, storeKey: storeData.storeKey } : prev);
+
+                alert("이미 등록된 가게가 있어 고객 관리 페이지로 이동합니다.");
+                router.push("/dashboard");
+            } else if (response.status === 404) {
+                // HTTP 404 NOT_FOUND: 등록된 가게가 없음
+                alert("아직 등록된 가게가 없습니다. 가게 등록 페이지로 이동합니다.");
+                router.push("/store/register");
+            } else {
+                // 그 외 오류
+                throw new Error(`Failed to check store status with status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error("가게 등록 상태 확인 중 오류 발생:", error);
+            alert("가게 등록 상태 확인 중 오류가 발생했습니다. 다시 시도해 주세요.");
+        }
+    };
 
     const handleManageStore = () => {
         router.push("/dash") // dash/page.tsx로 연결
