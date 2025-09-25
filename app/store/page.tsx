@@ -90,26 +90,22 @@ export default function StoreSearchPage() {
             const queue = `store_queue_${storeKey}`;
             const userId = userInfo.socialId;
 
-            // 백엔드의 새로운 진입점 API를 호출 (여기서 대기열 등록/확인/토큰 발급이 모두 처리됨)
-            const response = await fetch(`${apiUrl}/waiting-room?queue=${queue}&user_id=${userId}`);
+            const checkStatusUrl = `${apiUrl}/enter/checkStatus?queue=${queue}&user_id=${userId}`;
+            const response = await fetch(checkStatusUrl);
 
             if (!response.ok) {
-                throw new Error("Failed to start reservation process");
+                throw new Error("Failed to check user status");
             }
 
-            // 백엔드로부터 받은 리다이렉션 URL을 사용하여 페이지 이동
             const data = await response.json();
-            // 백엔드 응답이 리다이렉션 URL을 직접 제공하는 방식이라면
-            // router.push(data.redirectUrl);
-            // 또는, 백엔드가 status code 302와 Location 헤더로 처리하는 방식이라면, 프론트엔드는 추가 작업이 필요없음
 
-            // 하지만 백엔드 로직에 맞춰 number 값을 확인하는 방식이 더 유연합니다.
-            if (data.number > 0) {
-                // 대기 순번이 있다면 대기열 페이지로 이동
-                router.push(`/queue?storeKey=${storeKey}&queue=${queue}&userId=${userId}`);
-            } else {
-                // 순번이 0이면 바로 예약 페이지로 이동
+            // 응답 데이터의 `isAllowed`와 `redirectUrl`에 따라 페이지를 이동
+            if (data.isAllowed) {
+                // `isAllowed`가 true일 경우: 바로 예약 페이지로 이동
                 router.push(`/booking?storeKey=${storeKey}`);
+            } else {
+                // `isAllowed`가 false일 경우: 백엔드에서 제공한 대기열 페이지로 이동
+                router.push(data.redirectUrl);
             }
 
         } catch (error) {
