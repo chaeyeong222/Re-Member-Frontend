@@ -81,9 +81,12 @@ export default function KakaoCallbackPage() {
                     setMessage("로그인 완료! 대시보드로 이동합니다.");
                     sessionStorage.setItem('socialId', data.socialId);
                     sessionStorage.setItem('nickname', data.nickname);
+                    sessionStorage.setItem('userKey', data.userKey);
 
                     const userInfo = {
                         id: data.socialId, // socialId를 id로 사용
+
+                        userKey: data.userKey,
                         // name: formData.name,
                         // phone: formData.phone,
                     };

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { Search, MapPin, Heart, User, LogOut, Store as StoreIcon } from "lucide-react"
 
 interface UserInfo {
+    userId : number
     socialId: string
     name: string
     email: string
