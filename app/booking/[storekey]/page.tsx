@@ -9,13 +9,15 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { CalendarDays, Clock, MapPin, Phone, User, Heart } from "lucide-react"
-
+import { useRouter } from "next/navigation"
 export default function ReservationPage() {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
     const [selectedTime, setSelectedTime] = useState<string>("")
     const [customerName, setCustomerName] = useState("")
     const [customerPhone, setCustomerPhone] = useState("")
     const [specialRequests, setSpecialRequests] = useState("")
+
+    const router = useRouter()
 
     const availableTimes = [
         "10:00",
@@ -52,6 +54,10 @@ export default function ReservationPage() {
         alert(
             `예약이 완료되었습니다!\n날짜: ${selectedDate.toLocaleDateString("ko-KR")}\n시간: ${selectedTime}\n고객명: ${customerName}`,
         )
+
+        router.push("/store");
+
+
     }
 
     return (
