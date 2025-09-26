@@ -1,45 +1,62 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef  } from "react"
 import { Heart, Clock, Users, ArrowLeft, RefreshCw } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 export default function QueuePage() {
+
+    const router = useRouter()
     const [waitingRank, setWaitingRank] = useState<number>(0) // 초기 대기 순번
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
     const [isLoading, setIsLoading] = useState(false)
     const [queue, setQueue] = useState<string>("")
     const [userId, setUserId] = useState<string>("")
+    //추가
+    const [redirectUrl, setRedirectUrl] = useState<string>("")
+    const isRedirecting = useRef(false);
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8090";
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search)
         setQueue(urlParams.get("queue") || "")
         setUserId(urlParams.get("user_id") || "")
+        setRedirectUrl(urlParams.get("redirect_url") || "/")//추가
     }, [])
 
     const fetchWaitingRank = async () => {
-        if (!queue || !userId) return
+        if (isRedirecting.current || !queue || !userId) return
 
         setIsLoading(true)
         try {
             const queryParam = new URLSearchParams({ queue: queue, user_id: userId })
-            const response = await fetch("/api/v1/queue/rank?" + queryParam)
+            const response = await fetch(`${apiUrl}/api/v1/queue/rank?` + queryParam)
+
+            if (!response.ok) { // 404 에러 등을 여기서 잡을 수 있습니다.
+                throw new Error(`Failed to fetch rank: ${response.statusText}`);
+            }
+
             const data = await response.json()
 
-            if (data.rank < 0) {
-                await fetch("/api/v1/queue/touch?" + queryParam)
-                setWaitingRank(0)
-                setLastUpdated(new Date())
+            //
+            if (data.rank <= 0) {
+                //한 번만 실행되도록 플래그 설정
+                isRedirecting.current = true;
 
-                const newUrl = window.location.origin + window.location.pathname + window.location.search
-                window.location.href = newUrl
-                return
+                // 순서가되면 토큰 발급
+                await fetch(`${apiUrl}/api/v1/queue/touch?` + queryParam);
+
+                router.push(redirectUrl);
+                return; // 리디렉션 후에는 더 이상 상태를 업데이트할 필요가 없습니다.
             }
 
             setWaitingRank(data.rank)
             setLastUpdated(new Date())
         } catch (error) {
             console.error("대기 순번 조회 실패:", error)
+            isRedirecting.current = false; //에러발생시 리디렉션 플래그 초기화
         } finally {
             setIsLoading(false)
         }
@@ -49,10 +66,13 @@ export default function QueuePage() {
         if (queue && userId) {
             fetchWaitingRank()
 
+            // const interval = setInterval(() => {
+            //     if (queue && userId) {
+            //         fetchWaitingRank()
+            //     }
+            // }, 3000)
             const interval = setInterval(() => {
-                if (queue && userId) {
-                    fetchWaitingRank()
-                }
+                fetchWaitingRank()
             }, 3000)
 
             return () => clearInterval(interval)

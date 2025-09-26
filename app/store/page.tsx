@@ -91,8 +91,8 @@ export default function StoreSearchPage() {
             const queue = `store_queue_${storeKey}`;
             const userId = sessionStorage.getItem("userKey");
 
-            console.log(userId+"현재사용자");
-            const checkStatusUrl = `${apiUrl}/enter/checkStatus?queue=${queue}&user_id=${userId}`;
+            console.log("현재사용자 "+userId);
+            const checkStatusUrl = `${apiUrl}/enter/checkStatus?queue=${queue}&user_id=${userId}&store_key=${storeKey}`;
             const response = await fetch(checkStatusUrl);
 
             if (!response.ok) {
@@ -101,14 +101,12 @@ export default function StoreSearchPage() {
 
             const data = await response.json();
 
-            // 응답 데이터의 `isAllowed`와 `redirectUrl`에 따라 페이지를 이동
-            if (data.isAllowed) {
-                // `isAllowed`가 true일 경우: 바로 예약 페이지로 이동
-                router.push(`/booking?storeKey=${storeKey}`);
-            } else {
-                // `isAllowed`가 false일 경우: 백엔드에서 제공한 대기열 페이지로 이동
-                router.push(data.redirectUrl);
-            }
+            router.push(data.redirectUrl); //백엔드 응답 페이지로 바로 이동.
+            // if (data.isAllowed) {
+            //     router.push(`/booking?storeKey=${storeKey}`);
+            // } else {
+            //     router.push(data.redirectUrl);
+            // }
 
         } catch (error) {
             console.error("예약 처리 중 오류 발생:", error);
