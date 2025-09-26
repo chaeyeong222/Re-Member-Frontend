@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { Search, MapPin, Heart, User, LogOut, Store as StoreIcon } from "lucide-react"
 
 interface UserInfo {
+    userId : number
     socialId: string
     name: string
     email: string
@@ -88,8 +89,9 @@ export default function StoreSearchPage() {
 
         try {
             const queue = `store_queue_${storeKey}`;
-            const userId = userInfo.socialId;
+            const userId = sessionStorage.getItem("userKey");
 
+            console.log(userId+"현재사용자");
             const checkStatusUrl = `${apiUrl}/enter/checkStatus?queue=${queue}&user_id=${userId}`;
             const response = await fetch(checkStatusUrl);
 

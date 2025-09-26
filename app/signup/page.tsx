@@ -41,7 +41,6 @@ export default function SignupPage() {
             // JSON 문자열을 객체로 변환
             const signupInfo = JSON.parse(signupInfoString);
 
-            // 객체에서 socialId와 nickname 값 추출
             const { socialId, nickname } = signupInfo;
 
             const payload = {
@@ -63,14 +62,16 @@ export default function SignupPage() {
             });
 
             if (response.ok) {
-                const result = await response.text();
-                console.log("회원가입 성공:", result);
+                // const result = await response.text();
+                const userKey = await response.text();
+                console.log("회원가입 성공:", userKey);
                 alert("회원가입이 완료되었습니다.");
 
                 const userInfo = {
                     id: socialId, // socialId를 id로 사용
                     name: formData.name,
                     phone: formData.phone,
+                    userKey : userKey,
                 };
 
                 // JSON.stringify()를 사용하여 객체를 문자열로 변환하여 저장
