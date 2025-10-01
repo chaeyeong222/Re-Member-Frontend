@@ -14,6 +14,21 @@ interface Customer {
     joinDate: string
 }
 
+// AddCustomerRequestDto를 위한 타입 정의
+interface AddCustomerRequest {
+    customerName: string;
+    customerPhone: string;
+    storeKey: string;
+    memo: string;
+}
+
+// 새로운 고객 입력을 위한 상태 타입 정의
+interface NewCustomerInput {
+    customerName: string;
+    customerPhone: string;
+    memo: string;
+}
+
 export default function CustomerDashboard() {
     const params = useParams()
     const router = useRouter()
