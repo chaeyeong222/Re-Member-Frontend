@@ -56,9 +56,13 @@ export default function ReservationPage() {
         )
 
         router.push("/store");
-
-
     }
+
+    // 뒤로가기 핸들러 함수 추가
+    const handleGoBack = () => {
+        router.push("/store"); // /app/store/page.tsx (경로: /store)로 이동
+    }
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-orange-50 via-rose-50 to-pink-50">
