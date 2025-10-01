@@ -4,11 +4,11 @@ import { useRouter } from "next/navigation"
 import { Search, MapPin, Heart, User, LogOut, Store as StoreIcon } from "lucide-react"
 
 interface UserInfo {
-    userId : number
+    userId: number
     socialId: string
     name: string
     email: string
-    storeKey: string | null // storeKey가 없을 수도 있으므로 null 타입을 추가했습니다.
+    storeKey: string | null
 }
 
 interface Store {
@@ -24,134 +24,154 @@ export default function StoreSearchPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
     const [stores, setStores] = useState<Store[]>([])
+    const [hasStore, setHasStore] = useState(false)
+    const [myStoreKey, setMyStoreKey] = useState<string | null>(null)
     const router = useRouter()
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8090";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8090"
 
+    // 초기 로드 시 사용자 정보 및 가게 확인
     useEffect(() => {
-        const userInfoStr = localStorage.getItem("user_info")
+        const initializeUserAndStore = async () => {
+            const userInfoStr = localStorage.getItem("user_info")
 
-        if (!userInfoStr) {
-            router.push("/")
-            return
+            if (!userInfoStr) {
+                router.push("/")
+                return
+            }
+
+            try {
+                const parsedUserInfo = JSON.parse(userInfoStr)
+                console.log("Parsed userInfo:", parsedUserInfo)
+
+                // localStorage의 'id'를 'socialId'로 매핑
+                const normalizedUserInfo = {
+                    userId: parsedUserInfo.userKey || parsedUserInfo.userId,
+                    socialId: parsedUserInfo.id || parsedUserInfo.socialId,
+                    name: parsedUserInfo.name || "사용자",
+                    email: parsedUserInfo.email || "",
+                    storeKey: parsedUserInfo.storeKey || null
+                }
+
+                console.log("Normalized userInfo:", normalizedUserInfo)
+                setUserInfo(normalizedUserInfo)
+
+                // socialId로 등록된 가게 확인
+                if (normalizedUserInfo.socialId) {
+                    await checkMyStore(normalizedUserInfo.socialId)
+                } else {
+                    console.error("socialId가 없습니다:", normalizedUserInfo)
+                }
+            } catch (error) {
+                console.error("Failed to parse user info:", error)
+                router.push("/")
+                return
+            }
+
+            // 가게 목록 로드
+            fetchStores("")
         }
 
+        initializeUserAndStore()
+    }, [])
+
+    // 내 가게 확인
+    const checkMyStore = async (socialId: string) => {
         try {
-            const parsedUserInfo = JSON.parse(userInfoStr)
-            setUserInfo(parsedUserInfo)
-        } catch (error) {
-            console.error("Failed to parse user info:", error)
-            router.push("/")
-            return
-        }
+            console.log("Checking store for socialId:", socialId)
+            const response = await fetch(`${apiUrl}/store/getMyStore/${encodeURIComponent(socialId)}`)
 
-        fetchStores("");
-    }, [router]);
+            if (response.ok) {
+                const storeData = await response.json()
+                console.log("내 가게 정보:", storeData)
+                setHasStore(true)
+                setMyStoreKey(storeData.storeKey.toString())
+                localStorage.setItem("store_key", storeData.storeKey.toString())
+            } else if (response.status === 404) {
+                console.log("등록된 가게 없음")
+                setHasStore(false)
+                setMyStoreKey(null)
+            } else {
+                console.error("가게 확인 실패:", response.status)
+            }
+        } catch (error) {
+            console.error("가게 확인 중 오류:", error)
+            setHasStore(false)
+        }
+    }
 
     const fetchStores = async (query: string) => {
-        setIsLoading(true);
+        setIsLoading(true)
         try {
-            const url = query ?
-                `${apiUrl}/store/findStore?storeName=${encodeURIComponent(query)}` :
-                `${apiUrl}/store/getStoreList`;
+            const url = query
+                ? `${apiUrl}/store/findStore?storeName=${encodeURIComponent(query)}`
+                : `${apiUrl}/store/getStoreList`
 
-            const response = await fetch(url);
+            const response = await fetch(url)
             if (!response.ok) {
-                throw new Error("Failed to fetch stores");
+                throw new Error("Failed to fetch stores")
             }
-            const data = await response.json();
-            setStores(data);
+            const data = await response.json()
+            setStores(data)
         } catch (error) {
-            console.error("Error fetching stores:", error);
-            setStores([]);
+            console.error("Error fetching stores:", error)
+            setStores([])
         } finally {
-            setIsLoading(false);
+            setIsLoading(false)
         }
-    };
+    }
 
     const handleSearch = () => {
-        fetchStores(searchQuery);
-    };
+        fetchStores(searchQuery)
+    }
 
     const handleLogout = () => {
         localStorage.removeItem("kakao_token")
         localStorage.removeItem("store_key")
         localStorage.removeItem("user_info")
+        sessionStorage.clear()
         router.push("/")
     }
 
     const handleReservation = async (storeKey: string) => {
         if (!userInfo) {
-            alert("로그인이 필요합니다.");
-            router.push("/");
-            return;
+            alert("로그인이 필요합니다.")
+            router.push("/")
+            return
         }
 
         try {
-            const queue = `store_queue_${storeKey}`;
-            const userId = sessionStorage.getItem("userKey");
+            const queue = `store_queue_${storeKey}`
+            const userId = userInfo.userId.toString()
 
-            console.log("현재사용자 "+userId);
-            const checkStatusUrl = `${apiUrl}/enter/checkStatus?queue=${queue}&user_id=${userId}&store_key=${storeKey}`;
-            const response = await fetch(checkStatusUrl);
+            console.log("예약 시도:", { queue, userId, storeKey })
+            const checkStatusUrl = `${apiUrl}/enter/checkStatus?queue=${queue}&user_id=${userId}&store_key=${storeKey}`
+            const response = await fetch(checkStatusUrl)
 
             if (!response.ok) {
-                throw new Error("Failed to check user status");
+                throw new Error("Failed to check user status")
             }
 
-            const data = await response.json();
-
-            router.push(data.redirectUrl); //백엔드 응답 페이지로 바로 이동.
-            // if (data.isAllowed) {
-            //     router.push(`/booking?storeKey=${storeKey}`);
-            // } else {
-            //     router.push(data.redirectUrl);
-            // }
-
+            const data = await response.json()
+            router.push(data.redirectUrl)
         } catch (error) {
-            console.error("예약 처리 중 오류 발생:", error);
-            alert("예약 처리 중 오류가 발생했습니다. 다시 시도해 주세요.");
+            console.error("예약 처리 중 오류 발생:", error)
+            alert("예약 처리 중 오류가 발생했습니다. 다시 시도해 주세요.")
         }
     }
 
-    const handleRegisterStore = async () => {
-
-        if (!userInfo) {
-            alert("로그인이 필요합니다.");
-            router.push("/");
-            return;
-        }
-        // 객체에서 socialId와 nickname 값 추출
-        const socialIdStr = String(userInfo.socialId);
-        try {
-            // 백엔드 API를 호출하여 해당 socialId로 등록된 가게가 있는지 확인
-            const response = await fetch(`${apiUrl}/store/getStore/${encodeURIComponent(socialIdStr)}`);
-
-            if (response.ok) {
-                // HTTP 200 OK: 이미 등록된 가게가 있음
-                const storeData = await response.json();
-                localStorage.setItem("store_key", storeData.storeKey);
-
-                setUserInfo(prev => prev ? { ...prev, storeKey: storeData.storeKey } : prev);
-
-                alert("이미 등록된 가게가 있어 고객 관리 페이지로 이동합니다.");
-                router.push("/dashboard");
-            } else if (response.status === 404) {
-                // HTTP 404 NOT_FOUND: 등록된 가게가 없음
-                alert("아직 등록된 가게가 없습니다. 가게 등록 페이지로 이동합니다.");
-                router.push("/store/register");
-            } else {
-                // 그 외 오류
-                throw new Error(`Failed to check store status with status: ${response.status}`);
-            }
-        } catch (error) {
-            console.error("가게 등록 상태 확인 중 오류 발생:", error);
-            alert("가게 등록 상태 확인 중 오류가 발생했습니다. 다시 시도해 주세요.");
-        }
-    };
-
+    // 내 가게 관리하기 (이미 가게가 있는 경우)
     const handleManageStore = () => {
-        router.push("/dash") // dash/page.tsx로 연결
+        if (myStoreKey) {
+            router.push(`/dashboard/${myStoreKey}`)
+        } else {
+            alert("가게 정보를 불러오는 중입니다.")
+        }
+    }
+
+    // 내 가게 등록하기 (가게가 없는 경우)
+    const handleRegisterStore = () => {
+        router.push("/store/register")
     }
 
     if (isLoading) {
@@ -185,8 +205,8 @@ export default function StoreSearchPage() {
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
-                            {/* 조건부 렌더링 시작 */}
-                            {userInfo.storeKey ? (
+                            {/* 가게 등록/관리 버튼 */}
+                            {hasStore ? (
                                 <button
                                     onClick={handleManageStore}
                                     className="flex items-center gap-1 px-3 py-1.5 text-sm text-white bg-gradient-to-r from-rose-500 to-pink-500 rounded-md hover:from-rose-600 hover:to-pink-600 transition-colors"
@@ -203,7 +223,6 @@ export default function StoreSearchPage() {
                                     내 가게 등록하기
                                 </button>
                             )}
-                            {/* 조건부 렌더링 끝 */}
                             <div className="flex items-center gap-2">
                                 <div className="w-6 h-6 bg-gradient-to-r from-rose-400 to-pink-400 rounded-md flex items-center justify-center">
                                     <User className="h-3 w-3 text-white" />
@@ -233,8 +252,8 @@ export default function StoreSearchPage() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    handleSearch();
+                                if (e.key === "Enter") {
+                                    handleSearch()
                                 }
                             }}
                             className="w-full pl-10 pr-24 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
@@ -256,7 +275,10 @@ export default function StoreSearchPage() {
                         </div>
                     ) : (
                         stores.map((store) => (
-                            <div key={store.storeKey} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden p-4">
+                            <div
+                                key={store.storeKey}
+                                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden p-4"
+                            >
                                 <div className="space-y-3">
                                     <div>
                                         <h3 className="font-bold text-lg text-gray-900">{store.storeName}</h3>
@@ -279,7 +301,7 @@ export default function StoreSearchPage() {
 
                                     <button
                                         onClick={() => handleReservation(store.storeKey)}
-                                        className={`w-full py-2 px-4 rounded-xl font-medium transition-colors bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-600 hover:to-pink-600`}
+                                        className="w-full py-2 px-4 rounded-xl font-medium transition-colors bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-600 hover:to-pink-600"
                                     >
                                         예약하기
                                     </button>
