@@ -102,11 +102,6 @@ export default function StoreSearchPage() {
             const data = await response.json();
 
             router.push(data.redirectUrl); //백엔드 응답 페이지로 바로 이동.
-            // if (data.isAllowed) {
-            //     router.push(`/booking?storeKey=${storeKey}`);
-            // } else {
-            //     router.push(data.redirectUrl);
-            // }
 
         } catch (error) {
             console.error("예약 처리 중 오류 발생:", error);
@@ -125,7 +120,7 @@ export default function StoreSearchPage() {
         const socialIdStr = String(userInfo.socialId);
         try {
             // 백엔드 API를 호출하여 해당 socialId로 등록된 가게가 있는지 확인
-            const response = await fetch(`${apiUrl}/store/getStore/${encodeURIComponent(socialIdStr)}`);
+            const response = await fetch(`${apiUrl}/store/getMyStore/${encodeURIComponent(socialIdStr)}`);
 
             if (response.ok) {
                 // HTTP 200 OK: 이미 등록된 가게가 있음
