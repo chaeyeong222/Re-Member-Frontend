@@ -11,10 +11,12 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
-
+// @ts-ignore
+import { type PageProps } from 'next';
+// 인터페이스 정의
 interface VisitHistory {
     id: number
-    visitDate: string
+    visitDate: string // 서버에서 Timestamp (ISO String)
     amount: number
     memo: string
 }
@@ -24,13 +26,33 @@ interface Customer {
     customerName: string
     customerPhone: string
     visitCnt: number
-    memo: string
-    lastVisit: string
-    joinDate: string
+    memo: string | null // null 가능성을 추가
+    lastVisit: string // 서버에서 Timestamp (ISO String)
+    joinDate: string // 서버에서 Timestamp (ISO String)
 }
 
-interface CustomerDetailProps {
-    params: { id: string }
+// Next.js App Router Props 타입 (이 부분이 Next.js에서 기대하는 타입과 일치해야 함)
+// interface CustomerDetailProps {
+//     params: { id: string }
+// }
+type CustomerPageParams = {
+    id: string; // [id] 폴더 이름과 일치
+};
+type CustomerDetailProps = PageProps<CustomerPageParams>;
+// 날짜 포맷팅 유틸리티 함수
+const formatDate = (timestamp: string | null): string => {
+    if (!timestamp) return "-"
+    try {
+        // Z가 붙어있지 않으면 UTC로 해석되지 않도록 처리
+        const date = new Date(timestamp.endsWith('Z') ? timestamp : `${timestamp}Z`)
+        return date.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        })
+    } catch (e) {
+        return "-"
+    }
 }
 
 export default function CustomerDetail({ params }: CustomerDetailProps) {
@@ -48,62 +70,62 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
             setError(null)
 
             try {
-                // 방문 이력 가져오기
+                // 1. 고객 기본 정보 가져오기
+                const customerResponse = await fetch(`${apiUrl}/customer/${id}`)
+                if (!customerResponse.ok) {
+                    throw new Error(`고객 정보 로드 실패: ${customerResponse.status}`)
+                }
+                const customerData: Customer = await customerResponse.json()
+
+                // 2. 방문 이력 가져오기
                 const historyResponse = await fetch(`${apiUrl}/customer/${id}/customerHistory`)
-
-                if (historyResponse.status === 404) {
-                    setError("고객을 찾을 수 없습니다.")
-                    setIsLoading(false)
-                    return
-                }
-
                 if (!historyResponse.ok) {
-                    throw new Error(`HTTP error! status: ${historyResponse.status}`)
+                    throw new Error(`방문 이력 로드 실패: ${historyResponse.status}`)
                 }
-
                 const historyData: VisitHistory[] = await historyResponse.json()
-                console.log("방문 이력:", historyData)
 
-                // 방문 이력에서 날짜 포맷 변환 (Timestamp → 한국어 날짜)
-                const formattedHistories = historyData.map(history => ({
-                    ...history,
-                    visitDate: new Date(history.visitDate).toLocaleDateString('ko-KR', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    })
-                }))
+                // 3. 데이터 정리 및 상태 업데이트
 
-                setVisitHistories(formattedHistories)
+                // 방문 이력 날짜 포맷 변환 (Timestamp → 한국어 날짜)
+                const formattedHistories = historyData
+                    // 최신순 정렬 (서버에서 정렬되지 않았을 경우를 대비)
+                    .sort((a, b) => new Date(b.visitDate).getTime() - new Date(a.visitDate).getTime())
+                    .map(history => ({
+                        ...history,
+                        visitDate: formatDate(history.visitDate)
+                    }))
 
-                // TODO: 고객 기본 정보는 별도 API로 가져와야 합니다
-                // 현재는 임시로 빈 값 설정
+                // 고객 기본 정보 날짜 포맷 변환 및 통계 계산
+                const lastVisitDate = formattedHistories[0]?.visitDate || formatDate(customerData.lastVisit)
+                const joinDate = formatDate(customerData.joinDate)
+
                 setCustomer({
-                    customerKey: Number(id),
-                    customerName: "고객명",
-                    customerPhone: "010-0000-0000",
-                    visitCnt: formattedHistories.length,
-                    memo: "",
-                    lastVisit: formattedHistories[0]?.visitDate || "-",
-                    joinDate: "-"
+                    ...customerData,
+                    visitCnt: formattedHistories.length, // 이력 데이터로 횟수 재계산
+                    lastVisit: lastVisitDate,
+                    joinDate: joinDate,
+                    // customerData.memo가 null일 경우 빈 문자열로 처리
+                    memo: customerData.memo || null
                 })
+                setVisitHistories(formattedHistories)
 
             } catch (err) {
                 console.error("데이터 불러오기 실패:", err)
-                setError("데이터를 불러오는데 실패했습니다.")
+                // 404 에러일 경우를 대비하여 에러 메시지 분기 처리
+                setError(err instanceof Error && err.message.includes("404") ? "고객을 찾을 수 없습니다." : "데이터를 불러오는데 실패했습니다.")
             } finally {
                 setIsLoading(false)
             }
         }
 
         fetchData()
-    }, [id, apiUrl])
+    }, [id, apiUrl]) // 의존성 배열에 id와 apiUrl 포함
 
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-orange-50 via-rose-50 to-pink-50 flex items-center justify-center p-4">
                 <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-500"></div>
                     <span className="ml-4 text-gray-600">데이터를 불러오는 중...</span>
                 </div>
             </div>
@@ -114,8 +136,8 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-orange-50 via-rose-50 to-pink-50 flex items-center justify-center p-4">
                 <div className="bg-white/80 backdrop-blur-sm p-6 sm:p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-                    <p className="text-gray-600 mb-4">{error || "고객을 찾을 수 없습니다."}</p>
-                    <Link href="/store">
+                    <p className="text-gray-600 mb-4">{error || "고객 정보를 찾을 수 없습니다."}</p>
+                    <Link href="/store" passHref>
                         <button className="w-full px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-md hover:from-rose-600 hover:to-pink-600 transition-colors">
                             <ArrowLeft className="h-4 w-4 inline mr-2" />
                             고객 목록으로 돌아가기
@@ -127,14 +149,14 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
     }
 
     // 통계 계산
-    const totalAmount = visitHistories.reduce((sum, visit) => sum + visit.amount, 0)
+    const totalAmount = visitHistories.reduce((sum, visit) => sum + Number(visit.amount), 0)
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-orange-50 via-rose-50 to-pink-50">
             <div className="container mx-auto p-3 sm:p-4 lg:p-6">
                 {/* Header */}
                 <div className="mb-4 sm:mb-6">
-                    <Link href="/store">
+                    <Link href="/store" passHref>
                         <button className="mb-4 px-3 sm:px-4 py-2 border border-rose-200 hover:bg-rose-50 bg-transparent rounded-md flex items-center gap-2 transition-colors text-sm">
                             <ArrowLeft className="h-4 w-4" />
                             <span className="hidden sm:inline">고객 목록으로 돌아가기</span>
@@ -196,7 +218,7 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
                                 </h2>
                                 <div className="space-y-4">
                                     <div className="text-center p-3 bg-gradient-to-r from-rose-50 to-pink-50 rounded-lg">
-                                        <p className="text-xl sm:text-2xl font-bold text-rose-600">{customer.visitCnt}</p>
+                                        <p className="text-xl sm:text-2xl font-bold text-rose-600">{customer.visitCnt}회</p>
                                         <p className="text-xs text-gray-600">총 방문 횟수</p>
                                     </div>
 
