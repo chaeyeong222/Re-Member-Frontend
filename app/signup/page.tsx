@@ -65,7 +65,7 @@ export default function SignupPage() {
                 // const result = await response.text();
                 const userKey = await response.text();
                 console.log("회원가입 성공:", userKey);
-                alert("회원가입이 완료되었습니다.");
+                alert("회원가입이 완료되었습니다. \n 로그인 후 이용해주세요.");
 
                 const userInfo = {
                     id: socialId, // socialId를 id로 사용
@@ -78,7 +78,7 @@ export default function SignupPage() {
                 localStorage.setItem("user_info", JSON.stringify(userInfo));
 
                 // 페이지 이동
-                router.push("/store");
+                router.push("/");
 
             } else {
                 const errorData = await response.text();
