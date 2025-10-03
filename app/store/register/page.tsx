@@ -84,7 +84,7 @@ export default function StoreRegister() {
         setSubmitError(null)
 
         try {
-            const apiUrl = "http://localhost:8090/store/register"
+            const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/store/register`
 
             // 전송할 최종 데이터 객체
             const finalData: StoreSignDto = {
