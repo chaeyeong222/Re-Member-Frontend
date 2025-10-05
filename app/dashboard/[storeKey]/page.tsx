@@ -14,7 +14,6 @@ interface Customer {
     joinDate: string
 }
 
-// AddCustomerRequestDto를 위한 타입 정의
 interface AddCustomerRequest {
     customerName: string;
     customerPhone: string;
@@ -22,7 +21,6 @@ interface AddCustomerRequest {
     memo: string;
 }
 
-// 새로운 고객 입력을 위한 상태 타입 정의
 interface NewCustomerInput {
     customerName: string;
     customerPhone: string;
@@ -38,6 +36,13 @@ export default function CustomerDashboard() {
     const [searchTerm, setSearchTerm] = useState("")
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+    const [newCustomer, setNewCustomer] = useState<NewCustomerInput>({
+        customerName: "",
+        customerPhone: "",
+        memo: ""
+    })
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8090"
 
@@ -79,7 +84,6 @@ export default function CustomerDashboard() {
         fetchCustomers()
     }, [storeKey, apiUrl])
 
-    // 수정된 코드 (null/undefined일 경우 빈 문자열로 대체)
     const filteredCustomers = customers.filter(
         (customer) =>
             (customer.customerName ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -97,6 +101,50 @@ export default function CustomerDashboard() {
 
     const handleGoBack = () => {
         router.push("/store")
+    }
+
+    const handleAddCustomer = async () => {
+        if (!newCustomer.customerName.trim()) {
+            alert("고객 이름을 입력해주세요.")
+            return
+        }
+        if (!newCustomer.customerPhone.trim()) {
+            alert("전화번호를 입력해주세요.")
+            return
+        }
+
+        setIsSubmitting(true)
+        try {
+            const requestData: AddCustomerRequest = {
+                customerName: newCustomer.customerName,
+                customerPhone: newCustomer.customerPhone,
+                storeKey: storeKey,
+                memo: newCustomer.memo
+            }
+
+            const response = await fetch(`${apiUrl}/customer/addCustomer`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(requestData)
+            })
+
+            if (!response.ok) {
+                throw new Error("고객 등록에 실패했습니다.")
+            }
+
+            const addedCustomer: Customer = await response.json()
+            setCustomers([...customers, addedCustomer])
+            setIsAddModalOpen(false)
+            setNewCustomer({ customerName: "", customerPhone: "", memo: "" })
+            alert("고객이 성공적으로 등록되었습니다!")
+        } catch (error) {
+            console.error("고객 등록 실패:", error)
+            alert("고객 등록에 실패했습니다.")
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     if (isLoading) {
@@ -196,7 +244,10 @@ export default function CustomerDashboard() {
                                         className="pl-10 w-full px-3 py-2 text-sm border border-rose-200 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-rose-400"
                                     />
                                 </div>
-                                <button className="px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white text-sm rounded-md shadow-lg flex items-center justify-center gap-2 transition-all whitespace-nowrap">
+                                <button
+                                    onClick={() => setIsAddModalOpen(true)}
+                                    className="px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white text-sm rounded-md shadow-lg flex items-center justify-center gap-2 transition-all whitespace-nowrap"
+                                >
                                     <Plus className="h-4 w-4" />
                                     고객 추가
                                 </button>
@@ -229,9 +280,9 @@ export default function CustomerDashboard() {
                                         </td>
                                         <td className="py-3 px-4 text-gray-600">{customer.customerPhone}</td>
                                         <td className="py-3 px-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getVisitBadgeColor(customer.visitCnt)}`}>
-                          {customer.visitCnt}회
-                        </span>
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getVisitBadgeColor(customer.visitCnt)}`}>
+                                                {customer.visitCnt}회
+                                            </span>
                                         </td>
                                         <td className="py-3 px-4 text-gray-600 text-sm">{customer.lastVisit}</td>
                                         <td className="py-3 px-4 text-gray-600 max-w-xs truncate">{customer.memo}</td>
@@ -272,8 +323,8 @@ export default function CustomerDashboard() {
                                                 <p className="text-gray-600 text-sm">{customer.customerPhone}</p>
                                             </div>
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getVisitBadgeColor(customer.visitCnt)}`}>
-                        {customer.visitCnt}회
-                      </span>
+                                                {customer.visitCnt}회
+                                            </span>
                                         </div>
                                         <div className="space-y-2 mb-4">
                                             <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -321,6 +372,75 @@ export default function CustomerDashboard() {
                         )}
                     </div>
                 </div>
+
+                {/* Add Customer Modal */}
+                {isAddModalOpen && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                        <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                            <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <Heart className="h-5 w-5 text-rose-500" />
+                                새 고객 등록
+                            </h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        이름 <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={newCustomer.customerName}
+                                        onChange={(e) => setNewCustomer({ ...newCustomer, customerName: e.target.value })}
+                                        className="w-full px-3 py-2 border border-rose-200 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-rose-400"
+                                        placeholder="고객 이름"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        전화번호 <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        value={newCustomer.customerPhone}
+                                        onChange={(e) => setNewCustomer({ ...newCustomer, customerPhone: e.target.value })}
+                                        className="w-full px-3 py-2 border border-rose-200 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-rose-400"
+                                        placeholder="010-1234-5678"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        메모
+                                    </label>
+                                    <textarea
+                                        value={newCustomer.memo}
+                                        onChange={(e) => setNewCustomer({ ...newCustomer, memo: e.target.value })}
+                                        className="w-full px-3 py-2 border border-rose-200 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-rose-400"
+                                        placeholder="고객에 대한 메모를 입력하세요"
+                                        rows={3}
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex gap-3 mt-6">
+                                <button
+                                    onClick={() => {
+                                        setIsAddModalOpen(false)
+                                        setNewCustomer({ customerName: "", customerPhone: "", memo: "" })
+                                    }}
+                                    disabled={isSubmitting}
+                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                                >
+                                    취소
+                                </button>
+                                <button
+                                    onClick={handleAddCustomer}
+                                    disabled={isSubmitting}
+                                    className="flex-1 px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-md transition-all disabled:opacity-50"
+                                >
+                                    {isSubmitting ? "등록 중..." : "등록"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     )
