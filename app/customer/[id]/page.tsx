@@ -10,7 +10,7 @@ import {
     TrendingUp,
 } from "lucide-react"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 // @ts-ignore
 import { type PageProps } from 'next';
 // 인터페이스 정의
@@ -31,24 +31,29 @@ interface Customer {
     joinDate: string // 서버에서 Timestamp (ISO String)
 }
 
-// Next.js App Router Props 타입 (이 부분이 Next.js에서 기대하는 타입과 일치해야 함)
-// interface CustomerDetailProps {
-//     params: { id: string }
-// }
 type CustomerPageParams = {
     id: string; // [id] 폴더 이름과 일치
 };
-type CustomerDetailProps = PageProps<CustomerPageParams>;
+// type CustomerDetailProps = PageProps<CustomerPageParams>;
+
+interface CustomerDetailProps {
+    params: Promise<{ id: string }>
+}
 // 날짜 포맷팅 유틸리티 함수
 const formatDate = (timestamp: string | null): string => {
     if (!timestamp) return "-"
     try {
-        // Z가 붙어있지 않으면 UTC로 해석되지 않도록 처리
-        const date = new Date(timestamp.endsWith('Z') ? timestamp : `${timestamp}Z`)
+        // '2025-05-02 19:00:00' → '2025-05-02T19:00:00'
+        const isoString = timestamp.replace(' ', 'T')
+        const date = new Date(isoString)
+
+        if (isNaN(date.getTime())) return "-"
+
         return date.toLocaleDateString('ko-KR', {
             year: 'numeric',
             month: 'long',
-            day: 'numeric'
+            day: 'numeric',
+            timeZone: 'Asia/Seoul' // 명시적으로 한국 시간대 지정
         })
     } catch (e) {
         return "-"
@@ -56,7 +61,7 @@ const formatDate = (timestamp: string | null): string => {
 }
 
 export default function CustomerDetail({ params }: CustomerDetailProps) {
-    const { id } = params
+    const { id } = use(params)
     const [visitHistories, setVisitHistories] = useState<VisitHistory[]>([])
     const [customer, setCustomer] = useState<Customer | null>(null)
     const [isLoading, setIsLoading] = useState(true)

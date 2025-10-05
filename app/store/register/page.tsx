@@ -84,7 +84,7 @@ export default function StoreRegister() {
         setSubmitError(null)
 
         try {
-            const apiUrl = "http://localhost:8090/store/register"
+            const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/store/register`
 
             // 전송할 최종 데이터 객체
             const finalData: StoreSignDto = {
@@ -145,7 +145,7 @@ export default function StoreRegister() {
             <div className="container mx-auto p-4 lg:p-6">
                 {/* Header */}
                 <div className="mb-8">
-                    <Link href="/">
+                    <Link href="/store">
                         <button className="mb-6 px-4 py-2 border border-rose-200 hover:bg-rose-50 bg-transparent rounded-md flex items-center gap-2 transition-colors text-sm">
                             <ArrowLeft className="h-4 w-4" />
                             메인으로 돌아가기
