@@ -79,10 +79,11 @@ export default function CustomerDashboard() {
         fetchCustomers()
     }, [storeKey, apiUrl])
 
+    // 수정된 코드 (null/undefined일 경우 빈 문자열로 대체)
     const filteredCustomers = customers.filter(
         (customer) =>
-            customer.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            customer.customerPhone.includes(searchTerm)
+            (customer.customerName ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (customer.customerPhone ?? '').includes(searchTerm)
     )
 
     const totalCustomers = customers.length
