@@ -301,7 +301,7 @@ export default function StoreSearchPage() {
 
                                     <button
                                         onClick={() => handleReservation(store.storeKey)}
-                                        className="w-full py-2 px-4 rounded-xl font-medium transition-colors bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-600 hover:to-pink-600"
+                                        className="w-full py-2 px-4 rounded-xl font-medium transition-colors bg-gradient-to-r from-rose-300 to-pink-300 text-black hover:from-rose-400 hover:to-pink-400"
                                     >
                                         예약하기
                                     </button>
