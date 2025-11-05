@@ -292,7 +292,7 @@ export default function CustomerDashboard() {
                                     <tr key={customer.customerKey} className="hover:bg-rose-50/50 transition-colors border-b border-rose-100/50">
                                         <td className="py-3 px-4">
                                             <Link
-                                                href={`/customer/${customer.customerKey}/customerHistory`}
+                                                href={`/customer/${customer.customerKey}`}
                                                 className="font-medium text-gray-900 hover:text-rose-600 transition-colors cursor-pointer"
                                             >
                                                 {customer.customerName}

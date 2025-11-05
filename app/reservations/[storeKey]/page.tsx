@@ -6,7 +6,7 @@ import { Calendar, Clock, User, Phone, ArrowLeft, Heart, Filter, CheckCircle, XC
 import Link from "next/link"
 
 // 예약 상태 타입
-type ReservationStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED"
+type ReservationStatus = "PENDING" | "RESERVED" | "COMPLETED" | "CANCELED"
 
 interface Reservation {
     reservationKey: number
@@ -25,18 +25,18 @@ interface Reservation {
 
 // 상태별 한글 표시
 const statusText = {
-    PENDING: "대기중",
-    CONFIRMED: "확정",
-    COMPLETED: "완료",
-    CANCELLED: "취소"
+    PENDING: "예약 확정 대기중",
+    RESERVED: "예약 확정",
+    COMPLETED: "방문 완료",
+    CANCELED: "예약 취소"
 }
 
 // 상태별 색상
 const statusColor = {
     PENDING: "bg-amber-100 text-amber-800 border-amber-200",
-    CONFIRMED: "bg-blue-100 text-blue-800 border-blue-200",
+    RESERVED: "bg-blue-100 text-blue-800 border-blue-200",
     COMPLETED: "bg-green-100 text-green-800 border-green-200",
-    CANCELLED: "bg-gray-100 text-gray-800 border-gray-200"
+    CANCELED: "bg-gray-100 text-gray-800 border-gray-200"
 }
 
 export default function ReservationManagement() {
@@ -52,6 +52,13 @@ export default function ReservationManagement() {
     // 필터 상태
     const [statusFilter, setStatusFilter] = useState<ReservationStatus | "ALL">("ALL")
     const [dateFilter, setDateFilter] = useState<"TODAY" | "WEEK" | "ALL">("ALL")
+
+    // 완료 모달 상태
+    const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false)
+    const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null)
+    const [completeAmount, setCompleteAmount] = useState("")
+    const [completeMemo, setCompleteMemo] = useState("")
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8090"
 
@@ -121,13 +128,35 @@ export default function ReservationManagement() {
     const stats = {
         total: reservations.length,
         pending: reservations.filter(r => r.reservationStatus === "PENDING").length,
-        confirmed: reservations.filter(r => r.reservationStatus === "CONFIRMED").length,
+        reserved: reservations.filter(r => r.reservationStatus === "RESERVED").length,
         completed: reservations.filter(r => r.reservationStatus === "COMPLETED").length,
-        cancelled: reservations.filter(r => r.reservationStatus === "CANCELLED").length
+        cancelled: reservations.filter(r => r.reservationStatus === "CANCELED").length
     }
 
     // 상태 변경
     const handleStatusChange = async (reservationKey: number, newStatus: ReservationStatus) => {
+        const reservation = reservations.find(r => r.reservationKey === reservationKey)
+        if (!reservation) return
+
+        // 완료로 변경 시 모달 열기
+        if (newStatus === "COMPLETED") {
+            setSelectedReservation(reservation)
+            setCompleteAmount(reservation.amount?.toString() || "0")
+            setCompleteMemo(reservation.memo || "")
+            setIsCompleteModalOpen(true)
+            return
+        }
+
+        // 취소로 변경 시 확인 후 처리
+        if (newStatus === "CANCELED") {
+            if (!confirm("예약을 취소하시겠습니까?")) {
+                return
+            }
+            await handleCancel(reservationKey)
+            return
+        }
+
+        // 그 외 상태 변경 (대기중, 확정)
         try {
             const response = await fetch(`${apiUrl}/reservations/${reservationKey}/status?status=${newStatus}`, {
                 method: "PUT"
@@ -148,6 +177,78 @@ export default function ReservationManagement() {
         } catch (err) {
             console.error("상태 변경 실패:", err)
             alert("상태 변경에 실패했습니다.")
+        }
+    }
+
+    // 예약 완료 처리 (+ 고객 히스토리 자동 추가)
+    const handleComplete = async () => {
+        if (!selectedReservation) return
+
+        setIsSubmitting(true)
+        try {
+            const requestData = {
+                amount: Number(completeAmount) || 0,
+                memo: completeMemo,
+                customerId: selectedReservation.customerId,
+                customerName: selectedReservation.customer?.customerName,
+                customerPhone: selectedReservation.customer?.customerPhone
+            }
+
+            const response = await fetch(`${apiUrl}/reservations/${selectedReservation.reservationKey}/complete`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(requestData)
+            })
+
+            if (!response.ok) {
+                throw new Error("예약 완료 처리에 실패했습니다.")
+            }
+
+            const updatedReservation: Reservation = await response.json()
+
+            // 로컬 상태 업데이트
+            setReservations(reservations.map(r =>
+                r.reservationKey === selectedReservation.reservationKey ? updatedReservation : r
+            ))
+
+            // 모달 닫기 및 초기화
+            setIsCompleteModalOpen(false)
+            setSelectedReservation(null)
+            setCompleteAmount("")
+            setCompleteMemo("")
+            alert("예약이 완료되었으며 고객 히스토리에 추가되었습니다.")
+        } catch (err) {
+            console.error("예약 완료 처리 실패:", err)
+            alert("예약 완료 처리에 실패했습니다.")
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    // 예약 취소
+    const handleCancel = async (reservationKey: number) => {
+        try {
+            const response = await fetch(`${apiUrl}/reservations/${reservationKey}/cancel`, {
+                method: "PUT"
+            })
+
+            if (!response.ok) {
+                throw new Error("예약 취소에 실패했습니다.")
+            }
+
+            const updatedReservation: Reservation = await response.json()
+
+            // 로컬 상태 업데이트
+            setReservations(reservations.map(r =>
+                r.reservationKey === reservationKey ? updatedReservation : r
+            ))
+
+            alert("예약이 취소되었습니다.")
+        } catch (err) {
+            console.error("예약 취소 실패:", err)
+            alert("예약 취소에 실패했습니다.")
         }
     }
 
@@ -231,19 +332,19 @@ export default function ReservationManagement() {
                         <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
                     </div>
                     <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-lg p-3 sm:p-4">
-                        <p className="text-xs text-amber-600 mb-1">대기중</p>
+                        <p className="text-xs text-amber-600 mb-1">예약 확정 대기중</p>
                         <p className="text-2xl font-bold text-amber-600">{stats.pending}</p>
                     </div>
                     <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-lg p-3 sm:p-4">
-                        <p className="text-xs text-blue-600 mb-1">확정</p>
-                        <p className="text-2xl font-bold text-blue-600">{stats.confirmed}</p>
+                        <p className="text-xs text-blue-600 mb-1">예약 확정</p>
+                        <p className="text-2xl font-bold text-blue-600">{stats.reserved}</p>
                     </div>
                     <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-lg p-3 sm:p-4">
-                        <p className="text-xs text-green-600 mb-1">완료</p>
+                        <p className="text-xs text-green-600 mb-1">방문 완료</p>
                         <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
                     </div>
                     <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-lg p-3 sm:p-4">
-                        <p className="text-xs text-gray-600 mb-1">취소</p>
+                        <p className="text-xs text-gray-600 mb-1">예약 취소</p>
                         <p className="text-2xl font-bold text-gray-600">{stats.cancelled}</p>
                     </div>
                 </div>
@@ -301,10 +402,10 @@ export default function ReservationManagement() {
                                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-400"
                             >
                                 <option value="ALL">전체</option>
-                                <option value="PENDING">대기중</option>
-                                <option value="CONFIRMED">확정</option>
-                                <option value="COMPLETED">완료</option>
-                                <option value="CANCELLED">취소</option>
+                                <option value="PENDING">예약 확정 대기</option>
+                                <option value="RESERVED">예약 확정</option>
+                                <option value="COMPLETED">방문 완료</option>
+                                <option value="CANCELED">예약 취소</option>
                             </select>
                         </div>
                     </div>
@@ -362,10 +463,10 @@ export default function ReservationManagement() {
                                             onChange={(e) => handleStatusChange(reservation.reservationKey, e.target.value as ReservationStatus)}
                                             className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
                                         >
-                                            <option value="PENDING">대기중</option>
-                                            <option value="CONFIRMED">확정</option>
-                                            <option value="COMPLETED">완료</option>
-                                            <option value="CANCELLED">취소</option>
+                                            <option value="PENDING">예약 확정 대기중</option>
+                                            <option value="RESERVED">예약 확정</option>
+                                            <option value="COMPLETED">방문 완료</option>
+                                            <option value="CANCELED">예약 취소</option>
                                         </select>
                                     </div>
                                 </div>
@@ -373,6 +474,80 @@ export default function ReservationManagement() {
                         ))
                     )}
                 </div>
+
+                {/* 예약 완료 모달 */}
+                {isCompleteModalOpen && selectedReservation && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                        <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                            <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <CheckCircle className="h-5 w-5 text-green-500" />
+                                예약 완료 처리
+                            </h3>
+
+                            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                                <p className="text-sm text-gray-600 mb-1">고객명</p>
+                                <p className="font-medium text-gray-900">{selectedReservation.customer?.customerName}</p>
+                                <p className="text-sm text-gray-600 mt-2 mb-1">예약 일시</p>
+                                <p className="font-medium text-gray-900">{formatDateTime(selectedReservation.reservationDateTime)}</p>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        이용 금액 (원) <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={completeAmount}
+                                        onChange={(e) => setCompleteAmount(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400"
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        메모
+                                    </label>
+                                    <textarea
+                                        value={completeMemo}
+                                        onChange={(e) => setCompleteMemo(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400"
+                                        placeholder="방문 관련 메모를 입력하세요"
+                                        rows={3}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                <p className="text-sm text-blue-800">
+                                    예약 완료 시 고객 히스토리에 자동으로 추가됩니다.
+                                </p>
+                            </div>
+
+                            <div className="flex gap-3 mt-6">
+                                <button
+                                    onClick={() => {
+                                        setIsCompleteModalOpen(false)
+                                        setSelectedReservation(null)
+                                        setCompleteAmount("")
+                                        setCompleteMemo("")
+                                    }}
+                                    disabled={isSubmitting}
+                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                                >
+                                    취소
+                                </button>
+                                <button
+                                    onClick={handleComplete}
+                                    disabled={isSubmitting}
+                                    className="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-md transition-all disabled:opacity-50"
+                                >
+                                    {isSubmitting ? "처리 중..." : "완료 처리"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     )
