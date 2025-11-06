@@ -12,8 +12,9 @@ interface Reservation {
     reservationKey: number
     customerId: number
     storeKey: number
-    reservationName: string
-    reservationDateTime: string // "2025-01-30T14:00:00"
+    reservationName: string        // 고객명
+    reservationPhone?: string      // 고객 연락처
+    reservationDateTime: string    // "2025-01-30T14:00:00"
     reservationStatus: ReservationStatus
     amount?: number | null
     memo?: string | null
@@ -189,10 +190,12 @@ export default function ReservationManagement() {
             const requestData = {
                 amount: Number(completeAmount) || 0,
                 memo: completeMemo,
-                customerId: selectedReservation.customerId,
-                customerName: selectedReservation.customer?.customerName,
-                customerPhone: selectedReservation.customer?.customerPhone
+                reservationName: selectedReservation.reservationName,
+                reservationPhone: selectedReservation.reservationPhone
             }
+
+            console.log("예약 완료 요청 데이터:", requestData)
+            console.log("선택된 예약 정보:", selectedReservation)
 
             const response = await fetch(`${apiUrl}/reservations/${selectedReservation.reservationKey}/complete`, {
                 method: "PUT",
@@ -486,7 +489,7 @@ export default function ReservationManagement() {
 
                             <div className="mb-4 p-4 bg-gray-50 rounded-lg">
                                 <p className="text-sm text-gray-600 mb-1">고객명</p>
-                                <p className="font-medium text-gray-900">{selectedReservation.customer?.customerName}</p>
+                                <p className="font-medium text-gray-900">{selectedReservation.reservationName || "정보 없음"}</p>
                                 <p className="text-sm text-gray-600 mt-2 mb-1">예약 일시</p>
                                 <p className="font-medium text-gray-900">{formatDateTime(selectedReservation.reservationDateTime)}</p>
                             </div>
