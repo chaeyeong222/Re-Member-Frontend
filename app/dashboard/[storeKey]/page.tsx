@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Search, Users, Calendar, Eye, Edit, Trash2, Plus, Heart, ArrowLeft } from "lucide-react"
+import { Search, Users, Calendar, Eye, Edit, Trash2, Plus, Heart, ArrowLeft, ClipboardList } from "lucide-react"
 import Link from "next/link"
 
 interface Customer {
@@ -225,6 +225,26 @@ export default function CustomerDashboard() {
                     </div>
                 </div>
 
+                {/* Quick Actions */}
+                <div className="mb-6 sm:mb-8">
+                    <Link href={`/reservations/${storeKey}`}>
+                        <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-lg border-0 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer">
+                            <div className="p-4 sm:p-6 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-3 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-lg">
+                                        <ClipboardList className="h-6 w-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900">예약 관리</h3>
+                                        <p className="text-sm text-gray-600">가게 예약 현황을 확인하고 관리하세요</p>
+                                    </div>
+                                </div>
+                                <ArrowLeft className="h-5 w-5 text-gray-400 rotate-180" />
+                            </div>
+                        </div>
+                    </Link>
+                </div>
+
                 {/* Customer Management Section */}
                 <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-lg border-0">
                     <div className="p-4 sm:p-6">
@@ -272,7 +292,7 @@ export default function CustomerDashboard() {
                                     <tr key={customer.customerKey} className="hover:bg-rose-50/50 transition-colors border-b border-rose-100/50">
                                         <td className="py-3 px-4">
                                             <Link
-                                                href={`/customer/${customer.customerKey}/customerHistory`}
+                                                href={`/customer/${customer.customerKey}`}
                                                 className="font-medium text-gray-900 hover:text-rose-600 transition-colors cursor-pointer"
                                             >
                                                 {customer.customerName}

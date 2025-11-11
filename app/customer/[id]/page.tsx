@@ -8,9 +8,16 @@ import {
     FileText,
     Clock,
     TrendingUp,
+    Plus,
+    X,
 } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect, use } from "react"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 // @ts-ignore
 import { type PageProps } from 'next';
 // 인터페이스 정의
@@ -66,6 +73,13 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
     const [customer, setCustomer] = useState<Customer | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+
+    // 방문 이력 추가 모달 관련 state
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
+    const [amount, setAmount] = useState("0")
+    const [visitMemo, setVisitMemo] = useState("")
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8090"
 
@@ -125,6 +139,77 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
 
         fetchData()
     }, [id, apiUrl]) // 의존성 배열에 id와 apiUrl 포함
+
+    // 방문 이력 추가 함수
+    const handleAddVisit = async () => {
+        if (!selectedDate) {
+            alert("날짜를 선택해주세요.")
+            return
+        }
+
+        setIsSubmitting(true)
+        try {
+            // 날짜를 'YYYY-MM-DD HH:mm:ss' 형식으로 변환
+            const year = selectedDate.getFullYear()
+            const month = String(selectedDate.getMonth() + 1).padStart(2, '0')
+            const day = String(selectedDate.getDate()).padStart(2, '0')
+            const formattedDate = `${year}-${month}-${day} 00:00:00`
+
+            const requestData = {
+                customerKey: customer?.customerKey,
+                visitDate: formattedDate,
+                amount: Number(amount) || 0,
+                memo: visitMemo
+            }
+
+            const response = await fetch(`${apiUrl}/customer/${id}/customerHistory`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(requestData)
+            })
+
+            if (!response.ok) {
+                throw new Error("방문 이력 추가에 실패했습니다.")
+            }
+
+            // 성공 시 데이터 다시 불러오기
+            const customerResponse = await fetch(`${apiUrl}/customer/${id}`)
+            const updatedCustomer: Customer = await customerResponse.json()
+
+            const historyResponse = await fetch(`${apiUrl}/customer/${id}/customerHistory`)
+            const historyData: VisitHistory[] = await historyResponse.json()
+
+            const formattedHistories = historyData
+                .sort((a, b) => new Date(b.visitDate).getTime() - new Date(a.visitDate).getTime())
+                .map(history => ({
+                    ...history,
+                    visitDate: formatDate(history.visitDate)
+                }))
+
+            setCustomer({
+                ...updatedCustomer,
+                visitCnt: formattedHistories.length,
+                lastVisit: formattedHistories[0]?.visitDate || formatDate(updatedCustomer.lastVisit),
+                joinDate: formatDate(updatedCustomer.joinDate),
+                memo: updatedCustomer.memo || null
+            })
+            setVisitHistories(formattedHistories)
+
+            // 모달 닫고 초기화
+            setIsAddModalOpen(false)
+            setSelectedDate(new Date())
+            setAmount("0")
+            setVisitMemo("")
+            alert("방문 이력이 성공적으로 추가되었습니다!")
+        } catch (error) {
+            console.error("방문 이력 추가 실패:", error)
+            alert("방문 이력 추가에 실패했습니다.")
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
 
     if (isLoading) {
         return (
@@ -256,10 +341,19 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
                         {/* 방문 이력 */}
                         <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-lg border-0">
                             <div className="p-4 sm:p-6">
-                                <h2 className="flex items-center gap-2 text-base sm:text-lg font-semibold mb-4">
-                                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
-                                    방문 이력 (최신순)
-                                </h2>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="flex items-center gap-2 text-base sm:text-lg font-semibold">
+                                        <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
+                                        방문 이력 (최신순)
+                                    </h2>
+                                    <button
+                                        onClick={() => setIsAddModalOpen(true)}
+                                        className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-rose-400 to-pink-400 hover:from-rose-500 hover:to-pink-500 text-white text-sm rounded-md transition-colors"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        추가
+                                    </button>
+                                </div>
 
                                 {visitHistories.length === 0 ? (
                                     <div className="text-center py-8">
@@ -292,6 +386,94 @@ export default function CustomerDetail({ params }: CustomerDetailProps) {
                     </div>
                 </div>
             </div>
+
+            {/* 방문 이력 추가 모달 */}
+            {isAddModalOpen && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                                <Plus className="h-5 w-5 text-rose-500" />
+                                방문 이력 추가
+                            </h3>
+                            <button
+                                onClick={() => setIsAddModalOpen(false)}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            {/* 날짜 선택 */}
+                            <div>
+                                <Label className="text-gray-700 font-medium mb-2 block">
+                                    방문 날짜 <span className="text-rose-500">*</span>
+                                </Label>
+                                <CalendarComponent
+                                    mode="single"
+                                    selected={selectedDate}
+                                    onSelect={setSelectedDate}
+                                    disabled={(date) => date > new Date()}
+                                    className="rounded-md border border-rose-200 mx-auto"
+                                />
+                            </div>
+
+                            {/* 이용 금액 */}
+                            <div>
+                                <Label htmlFor="amount" className="text-gray-700 font-medium">
+                                    이용 금액 (원)
+                                </Label>
+                                <Input
+                                    id="amount"
+                                    type="number"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    placeholder="0"
+                                    className="border-rose-200 focus:border-rose-400 focus:ring-rose-400"
+                                />
+                            </div>
+
+                            {/* 메모 */}
+                            <div>
+                                <Label htmlFor="visitMemo" className="text-gray-700 font-medium">
+                                    메모
+                                </Label>
+                                <Textarea
+                                    id="visitMemo"
+                                    value={visitMemo}
+                                    onChange={(e) => setVisitMemo(e.target.value)}
+                                    placeholder="방문 관련 메모를 입력하세요"
+                                    rows={3}
+                                    className="border-rose-200 focus:border-rose-400 focus:ring-rose-400 resize-none"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                onClick={() => {
+                                    setIsAddModalOpen(false)
+                                    setSelectedDate(new Date())
+                                    setAmount("0")
+                                    setVisitMemo("")
+                                }}
+                                disabled={isSubmitting}
+                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                            >
+                                취소
+                            </button>
+                            <button
+                                onClick={handleAddVisit}
+                                disabled={isSubmitting}
+                                className="flex-1 px-4 py-2 bg-gradient-to-r from-rose-400 to-pink-400 hover:from-rose-500 hover:to-pink-500 text-white rounded-md transition-all disabled:opacity-50"
+                            >
+                                {isSubmitting ? "등록 중..." : "등록"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

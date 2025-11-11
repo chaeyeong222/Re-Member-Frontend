@@ -336,7 +336,7 @@ export default function ReservationPage() {
 
                                 <Button
                                     onClick={handleReservation}
-                                    className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white py-3 text-lg font-semibold shadow-lg transition-all duration-300 hover:shadow-xl"
+                                    className="w-full bg-gradient-to-r from-rose-400 to-pink-400 hover:from-rose-500 hover:to-pink-500 text-white py-3 text-lg font-semibold shadow-lg transition-all duration-300 hover:shadow-xl"
                                     size="lg"
                                 >
                                     예약하기
